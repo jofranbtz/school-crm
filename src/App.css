@@ -1,0 +1,36 @@
+.App {
+  font-family: system-ui, sans-serif;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.App-header {
+  background: #0b0d17;
+  color: white;
+  padding: 16px 24px;
+}
+
+.App-header nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.App-header a {
+  color: #c7d2fe;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.App-header a.active {
+  color: #fbbf24;
+}
+
+.App-main {
+  padding: 24px;
+}
+
+.App-main h1 {
+  margin-top: 0;
+}
