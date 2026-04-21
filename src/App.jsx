@@ -1,15 +1,40 @@
-import { Routes, Route } from "react-router-dom";
+import './App.css'
+import { Routes, Route } from 'react-router-dom'
+import { useEffect } from "react";
+import client from "./api/client";
+
 import Layout from "./components/Layout";
-import Materias from "./pages/Materias";
+
+import Home from './pages/Home.jsx'
+import Login from './pages/Login.jsx'
+import Alumnos from './pages/Alumnos.jsx'
+import Grupos from './pages/Grupos.jsx'
+import Calificaciones from './pages/Calificaciones.jsx'
+import Dashboard from './pages/Dashboard.jsx'
+import Materias from './pages/Materias.jsx'
 
 function App() {
+  useEffect(() => {
+    console.log("usuarios de JSONPlaceholder sin errores");
+
+    client.get("/users")
+      .then((res) => {
+        console.log("Usuarios:", res.data);
+      })
+      .catch((err) => {
+        console.error("Error:", err);
+      });
+  }, []);
+
   return (
     <Routes>
       <Route path="/" element={<Layout />}>
-        <Route path="alumnos" element={<h1>Alumnos</h1>} />
-        <Route path="grupos" element={<h1>Grupos</h1>} />
-        <Route path="calificaciones" element={<h1>Calificaciones</h1>} />
-        <Route path="dashboard" element={<h1>Dashboard</h1>} />
+        <Route index element={<Home />} />
+        <Route path="login" element={<Login />} />
+        <Route path="alumnos" element={<Alumnos />} />
+        <Route path="grupos" element={<Grupos />} />
+        <Route path="calificaciones" element={<Calificaciones />} />
+        <Route path="dashboard" element={<Dashboard />} />
         <Route path="materias" element={<Materias />} />
       </Route>
     </Routes>
