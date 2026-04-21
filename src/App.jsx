@@ -1,5 +1,6 @@
 import { Routes, Route } from "react-router-dom";
 import Layout from "./components/Layout";
+import Materias from "./pages/Materias";
 
 function App() {
   return (
@@ -9,6 +10,7 @@ function App() {
         <Route path="grupos" element={<h1>Grupos</h1>} />
         <Route path="calificaciones" element={<h1>Calificaciones</h1>} />
         <Route path="dashboard" element={<h1>Dashboard</h1>} />
+        <Route path="materias" element={<Materias />} />
       </Route>
     </Routes>
   );
