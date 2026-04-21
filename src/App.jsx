@@ -1,5 +1,8 @@
 import './App.css'
 import { NavLink, Routes, Route } from 'react-router-dom'
+
+import { useEffect } from "react";
+import client from "./api/client";
 import Home from './pages/Home.jsx'
 import Login from './pages/Login.jsx'
 import Alumnos from './pages/Alumnos.jsx'
@@ -8,6 +11,18 @@ import Calificaciones from './pages/Calificaciones.jsx'
 import Dashboard from './pages/Dashboard.jsx'
 
 function App() {
+    useEffect(() => {
+    console.log("usuarios de JSONPlaceholder sin errores");
+
+    client.get("/users")
+      .then((res) => {
+        console.log("Usuarios:", res.data);
+      })
+      .catch((err) => {
+        console.error("Error:", err);
+      });
+  }, []);
+
   return (
     <div className="App">
       <header className="App-header">
@@ -34,6 +49,7 @@ function App() {
         </Routes>
       </main>
     </div>
+  
   )
 }
 
