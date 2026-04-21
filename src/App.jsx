@@ -1,6 +1,7 @@
 import './App.css'
 import { NavLink, Routes, Route } from 'react-router-dom'
 import Home from './pages/Home.jsx'
+import Login from './pages/Login.jsx'
 import Alumnos from './pages/Alumnos.jsx'
 import Grupos from './pages/Grupos.jsx'
 import Calificaciones from './pages/Calificaciones.jsx'
@@ -14,6 +15,7 @@ function App() {
           <NavLink to="/" end>
             Inicio
           </NavLink>
+          <NavLink to="/login">Login</NavLink>
           <NavLink to="/alumnos">Alumnos</NavLink>
           <NavLink to="/grupos">Grupos</NavLink>
           <NavLink to="/calificaciones">Calificaciones</NavLink>
@@ -24,6 +26,7 @@ function App() {
       <main className="App-main">
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/login" element={<Login />} />
           <Route path="/alumnos" element={<Alumnos />} />
           <Route path="/grupos" element={<Grupos />} />
           <Route path="/calificaciones" element={<Calificaciones />} />
