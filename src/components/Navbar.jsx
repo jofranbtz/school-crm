@@ -7,6 +7,7 @@ function Navbar() {
       <Link to="/grupos" className="hover:text-blue-400">Grupos</Link>
       <Link to="/calificaciones" className="hover:text-blue-400">Calificaciones</Link>
       <Link to="/dashboard" className="hover:text-blue-400">Dashboard</Link>
+      <Link to="/materias" className="hover:text-blue-400">Materias</Link>
     </nav>
   );
 }
