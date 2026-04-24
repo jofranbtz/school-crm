@@ -6,8 +6,15 @@ function Grupos() {
     { clave: "PRO102", nombre: "Programación" },
   ];
 
+  const alumnosDisponibles = [
+    { id: 1, nombre: "Juan" },
+    { id: 2, nombre: "María" },
+    { id: 3, nombre: "Carlos" },
+  ];
+
   const [grupos, setGrupos] = useState([]);
   const [showForm, setShowForm] = useState(false);
+  const [grupoSeleccionado, setGrupoSeleccionado] = useState(null);
 
   const [form, setForm] = useState({
     nombre: "",
@@ -30,7 +37,7 @@ function Grupos() {
       return;
     }
 
-    setGrupos([...grupos, form]);
+    setGrupos([...grupos, { ...form, alumnos: [] }]);
 
     setForm({
       nombre: "",
@@ -39,6 +46,22 @@ function Grupos() {
     });
 
     setShowForm(false);
+  };
+
+  const agregarAlumno = (alumno) => {
+    const nuevosGrupos = grupos.map((g, i) => {
+      if (i === grupoSeleccionado) {
+        if (g.alumnos.find(a => a.id === alumno.id)) return g;
+
+        return {
+          ...g,
+          alumnos: [...g.alumnos, alumno],
+        };
+      }
+      return g;
+    });
+
+    setGrupos(nuevosGrupos);
   };
 
   return (
@@ -69,6 +92,7 @@ function Grupos() {
                 <th className="p-3">Grupo</th>
                 <th className="p-3">Materia</th>
                 <th className="p-3">Ciclo</th>
+                <th className="p-3">Acciones</th>
               </tr>
             </thead>
             <tbody>
@@ -77,6 +101,14 @@ function Grupos() {
                   <td className="p-2">{g.nombre}</td>
                   <td className="p-2">{g.materia}</td>
                   <td className="p-2">{g.ciclo}</td>
+                  <td className="p-2">
+                    <button
+                      onClick={() => setGrupoSeleccionado(index)}
+                      className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600"
+                    >
+                      Ver alumnos
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -84,7 +116,7 @@ function Grupos() {
         )}
       </div>
 
-      {/* MODAL */}
+      {/* MODAL CREAR GRUPO */}
       {showForm && (
         <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center">
 
@@ -94,7 +126,6 @@ function Grupos() {
             </h2>
 
             <form onSubmit={handleSubmit} className="space-y-3">
-
               <input
                 type="text"
                 name="nombre"
@@ -110,18 +141,16 @@ function Grupos() {
                 onChange={handleChange}
                 className="p-2 w-full rounded bg-gray-800 border border-gray-600"
               >
-                <option value="">Selecciona una materia</option>
-                {materias.map((m, index) => (
-                  <option key={index} value={m.nombre}>
-                    {m.nombre}
-                  </option>
+                <option value="">Selecciona materia</option>
+                {materias.map((m, i) => (
+                  <option key={i}>{m.nombre}</option>
                 ))}
               </select>
 
               <input
                 type="text"
                 name="ciclo"
-                placeholder="Ciclo escolar (ej. 2024-2025)"
+                placeholder="Ciclo escolar"
                 value={form.ciclo}
                 onChange={handleChange}
                 className="p-2 w-full rounded bg-gray-800 border border-gray-600"
@@ -143,8 +172,52 @@ function Grupos() {
                   Guardar
                 </button>
               </div>
-
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL ALUMNOS */}
+      {grupoSeleccionado !== null && (
+        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center">
+
+          <div className="bg-gray-900 text-white p-6 rounded-xl w-full max-w-md shadow-2xl border border-gray-700">
+            <h2 className="text-xl font-bold mb-4 text-center">
+              Alumnos - {grupos[grupoSeleccionado].nombre}
+            </h2>
+
+            {/* LISTA */}
+            {grupos[grupoSeleccionado].alumnos.length === 0 ? (
+              <p className="text-gray-400 text-center mb-4">
+                No hay alumnos inscritos
+              </p>
+            ) : (
+              <ul className="mb-4 text-center">
+                {grupos[grupoSeleccionado].alumnos.map((a) => (
+                  <li key={a.id}>{a.nombre}</li>
+                ))}
+              </ul>
+            )}
+
+            {/* BOTONES */}
+            <div className="flex flex-wrap gap-2 justify-center mb-4">
+              {alumnosDisponibles.map((a) => (
+                <button
+                  key={a.id}
+                  onClick={() => agregarAlumno(a)}
+                  className="bg-blue-500 px-3 py-1 rounded hover:bg-blue-600"
+                >
+                  {a.nombre}
+                </button>
+              ))}
+            </div>
+
+            <button
+              onClick={() => setGrupoSeleccionado(null)}
+              className="w-full bg-gray-600 py-2 rounded hover:bg-gray-700"
+            >
+              Cerrar
+            </button>
           </div>
 
         </div>
