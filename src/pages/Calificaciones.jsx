@@ -15,8 +15,24 @@ function Calificaciones() {
 
   // Manejar cambio de calificaciones
   const handleChange = (id, campo, valor) => {
+    // Validar que solo acepte números entre 0 y 10
+    let valorValidado = valor;
+    
+    if (valor !== "") {
+      const num = parseFloat(valor);
+      if (isNaN(num)) {
+        valorValidado = "";
+      } else if (num < 0) {
+        valorValidado = "0";
+      } else if (num > 10) {
+        valorValidado = "10";
+      } else {
+        valorValidado = num.toString();
+      }
+    }
+
     const nuevos = alumnos.map((a) =>
-      a.id === id ? { ...a, [campo]: valor } : a
+      a.id === id ? { ...a, [campo]: valorValidado } : a
     );
     setAlumnos(nuevos);
   };
