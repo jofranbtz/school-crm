@@ -3,9 +3,9 @@ import React, { useState } from 'react';
 function Alumnos() {
   // Datos iniciales de alumnos
   const [alumnos, setAlumnos] = useState([
-    { nombre: 'Juan', apellido: 'Pérez', matricula: '2021001', carrera: 'Ingeniería en Sistemas', semestre: '8', estado: 'Activo' },
-    { nombre: 'María', apellido: 'García', matricula: '2021002', carrera: 'Ingeniería Civil', semestre: '6', estado: 'Activo' },
-    { nombre: 'Carlos', apellido: 'López', matricula: '2021003', carrera: 'Medicina', semestre: '10', estado: 'Inactivo' },
+    { nombre: 'Juan', apellido: 'Pérez', matricula: '2021001', carrera: 'Ingeniería en Sistemas', semestre: '8', grupo: 'A', estado: 'Activo' },
+    { nombre: 'María', apellido: 'García', matricula: '2021002', carrera: 'Ingeniería Civil', semestre: '6', grupo: 'B', estado: 'Activo' },
+    { nombre: 'Carlos', apellido: 'López', matricula: '2021003', carrera: 'Medicina', semestre: '10', grupo: 'C', estado: 'Inactivo' },
   ]);
 
   // Estado del formulario
@@ -15,6 +15,7 @@ function Alumnos() {
     matricula: '',
     carrera: '',
     semestre: '',
+    grupo: '',
   });
 
   const [errores, setErrores] = useState({});
@@ -41,6 +42,7 @@ function Alumnos() {
     if (!formData.matricula.trim()) nuevosErrores.matricula = 'La matrícula es obligatoria';
     if (!formData.carrera) nuevosErrores.carrera = 'La carrera es obligatoria';
     if (!formData.semestre) nuevosErrores.semestre = 'El semestre es obligatorio';
+    if (!formData.grupo.trim()) nuevosErrores.grupo = 'El grupo es obligatorio';
 
     setErrores(nuevosErrores);
     return Object.keys(nuevosErrores).length === 0;
@@ -85,8 +87,51 @@ function Alumnos() {
       matricula: '',
       carrera: '',
       semestre: '',
+      grupo: '',
     });
     setErrores({});
+  };
+
+// Estado para edición
+  const [editIndex, setEditIndex] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+
+  // Estado para modal de confirmación de baja
+  const [showConfirmBaja, setShowConfirmBaja] = useState(false);
+  const [alumnoParaBaja, setAlumnoParaBaja] = useState(null);
+
+  // Abrir modal y cargar datos del alumno
+  const handleEditAlumno = (index) => {
+    setEditIndex(index);
+    setFormData({ ...alumnos[index] });
+    setShowModal(true);
+    setErrores({});
+  };
+
+// Guardar cambios de edición
+  const handleUpdateAlumno = (e) => {
+    e.preventDefault();
+    if (!validarFormulario()) return;
+    setAlumnos(prev => prev.map((al, idx) => idx === editIndex ? { ...formData, estado: al.estado } : al));
+    setShowModal(false);
+    setEditIndex(null);
+    setFormData({ nombre: '', apellido: '', matricula: '', carrera: '', semestre: '', grupo: '' });
+    setErrores({});
+  };
+
+  // Abrir modal de confirmación de baja
+  const handleConfirmBaja = (index) => {
+    setAlumnoParaBaja(index);
+    setShowConfirmBaja(true);
+  };
+
+  // Confirmar la baja del alumno
+  const handleBajaAlumno = () => {
+    setAlumnos(prev => prev.map((al, idx) => 
+      idx === alumnoParaBaja ? { ...al, estado: 'Baja' } : al
+    ));
+    setShowConfirmBaja(false);
+    setAlumnoParaBaja(null);
   };
 
   return (
@@ -98,6 +143,26 @@ function Alumnos() {
         <h2 className="text-xl font-semibold mb-4">Registrar Nuevo Alumno</h2>
         
         <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {/* Campo Grupo */}
+                    <div>
+                      <label htmlFor="grupo" className="block text-sm font-medium text-gray-700 mb-1">
+                        Grupo *
+                      </label>
+                      <input
+                        type="text"
+                        id="grupo"
+                        name="grupo"
+                        value={formData.grupo}
+                        onChange={handleChange}
+                        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                          errores.grupo ? 'border-red-500' : 'border-gray-300'
+                        }`}
+                        placeholder="A"
+                      />
+                      {errores.grupo && (
+                        <p className="text-red-500 text-xs mt-1">{errores.grupo}</p>
+                      )}
+                    </div>
           {/* Campo Nombre */}
           <div>
             <label htmlFor="nombre" className="block text-sm font-medium text-gray-700 mb-1">
@@ -225,6 +290,82 @@ function Alumnos() {
         </form>
       </div>
 
+{/* Modal de edición */}
+      {showModal && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-lg relative">
+            <button className="absolute top-2 right-2 text-gray-500 hover:text-gray-700" onClick={() => setShowModal(false)}>&times;</button>
+            <h2 className="text-xl font-semibold mb-4">Editar Alumno</h2>
+            <form onSubmit={handleUpdateAlumno} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Campos igual que el formulario de registro */}
+              <div>
+                <label htmlFor="nombre-edit" className="block text-sm font-medium text-gray-700 mb-1">Nombre *</label>
+                <input type="text" id="nombre-edit" name="nombre" value={formData.nombre} onChange={handleChange} className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${errores.nombre ? 'border-red-500' : 'border-gray-300'}`} />
+                {errores.nombre && (<p className="text-red-500 text-xs mt-1">{errores.nombre}</p>)}
+              </div>
+              <div>
+                <label htmlFor="apellido-edit" className="block text-sm font-medium text-gray-700 mb-1">Apellido *</label>
+                <input type="text" id="apellido-edit" name="apellido" value={formData.apellido} onChange={handleChange} className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${errores.apellido ? 'border-red-500' : 'border-gray-300'}`} />
+                {errores.apellido && (<p className="text-red-500 text-xs mt-1">{errores.apellido}</p>)}
+              </div>
+              <div>
+                <label htmlFor="matricula-edit" className="block text-sm font-medium text-gray-700 mb-1">Matrícula *</label>
+                <input type="text" id="matricula-edit" name="matricula" value={formData.matricula} onChange={handleChange} className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${errores.matricula ? 'border-red-500' : 'border-gray-300'}`} />
+                {errores.matricula && (<p className="text-red-500 text-xs mt-1">{errores.matricula}</p>)}
+              </div>
+              <div>
+                <label htmlFor="carrera-edit" className="block text-sm font-medium text-gray-700 mb-1">Carrera *</label>
+                <select id="carrera-edit" name="carrera" value={formData.carrera} onChange={handleChange} className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${errores.carrera ? 'border-red-500' : 'border-gray-300'}`}>{carreras.map((carrera) => (<option key={carrera} value={carrera}>{carrera}</option>))}</select>
+                {errores.carrera && (<p className="text-red-500 text-xs mt-1">{errores.carrera}</p>)}
+              </div>
+              <div>
+                <label htmlFor="semestre-edit" className="block text-sm font-medium text-gray-700 mb-1">Semestre *</label>
+                <select id="semestre-edit" name="semestre" value={formData.semestre} onChange={handleChange} className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${errores.semestre ? 'border-red-500' : 'border-gray-300'}`}>{semestres.map((semestre) => (<option key={semestre} value={semestre}>Semestre {semestre}</option>))}</select>
+                {errores.semestre && (<p className="text-red-500 text-xs mt-1">{errores.semestre}</p>)}
+              </div>
+              <div>
+                <label htmlFor="grupo-edit" className="block text-sm font-medium text-gray-700 mb-1">Grupo *</label>
+                <input type="text" id="grupo-edit" name="grupo" value={formData.grupo} onChange={handleChange} className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${errores.grupo ? 'border-red-500' : 'border-gray-300'}`} />
+                {errores.grupo && (<p className="text-red-500 text-xs mt-1">{errores.grupo}</p>)}
+              </div>
+              <div className="flex items-end">
+                <button type="submit" className="w-full bg-blue-600 text-white font-medium py-2 px-4 rounded-md hover:bg-blue-700 transition">Guardar Cambios</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de confirmación de baja */}
+      {showConfirmBaja && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+            <h2 className="text-xl font-semibold mb-4">Confirmar Baja</h2>
+            <p className="text-gray-700 mb-6">
+              ¿Estás seguro de que deseas dar de baja al alumno <strong>{alumnos[alumnoParaBaja]?.nombre} {alumnos[alumnoParaBaja]?.apellido}</strong>? 
+              Su estado cambió a "Baja".
+            </p>
+            <div className="flex gap-4 justify-end">
+              <button
+                className="bg-gray-300 hover:bg-gray-400 text-gray-700 font-medium py-2 px-4 rounded-md transition"
+                onClick={() => {
+                  setShowConfirmBaja(false);
+                  setAlumnoParaBaja(null);
+                }}
+              >
+                Cancelar
+              </button>
+              <button
+                className="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-md transition"
+                onClick={handleBajaAlumno}
+              >
+                Confirmar Baja
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Lista de alumnos */}
       <div>
         <h2 className="text-xl font-semibold mb-4">Lista de Alumnos</h2>
@@ -243,23 +384,47 @@ function Alumnos() {
                   <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Matrícula</th>
                   <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Carrera</th>
                   <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Semestre</th>
+                  <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Grupo</th>
                   <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Estado</th>
+                  <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Acciones</th>
                 </tr>
               </thead>
               <tbody>
-                {alumnos.map((alumno, index) => (
-                  <tr key={index} className="border-t border-gray-200 hover:bg-gray-50">
+{alumnos.map((alumno, index) => (
+                  <tr key={index} className={`border-t border-gray-200 hover:bg-gray-50 ${alumno.estado === 'Baja' ? 'bg-gray-100 opacity-60' : ''}`}>
                     <td className="px-4 py-2 text-sm text-gray-900">{alumno.nombre}</td>
                     <td className="px-4 py-2 text-sm text-gray-900">{alumno.apellido}</td>
                     <td className="px-4 py-2 text-sm text-gray-900">{alumno.matricula}</td>
                     <td className="px-4 py-2 text-sm text-gray-900">{alumno.carrera}</td>
                     <td className="px-4 py-2 text-sm text-gray-900">{alumno.semestre}</td>
-                    <td className="px-4 py-2 text-sm text-gray-900">
+                    <td className="px-4 py-2 text-sm text-gray-900">{alumno.grupo}</td>
+<td className="px-4 py-2 text-sm text-gray-900">
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        alumno.estado === 'Activo' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                        alumno.estado === 'Activo' ? 'bg-green-100 text-green-800' : 
+                        alumno.estado === 'Baja' ? 'bg-gray-200 text-gray-600' : 'bg-red-100 text-red-800'
                       }`}>
                         {alumno.estado}
                       </span>
+                    </td>
+                    <td className="px-4 py-2 text-sm text-gray-900">
+                      {alumno.estado !== 'Baja' && (
+                        <div className="flex gap-2">
+                          <button
+                            className="bg-yellow-400 hover:bg-yellow-500 text-white px-3 py-1 rounded"
+                            onClick={() => handleEditAlumno(index)}
+                          >
+                            Editar
+                          </button>
+                          {alumno.estado === 'Activo' && (
+                            <button
+                              className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded"
+                              onClick={() => handleConfirmBaja(index)}
+                            >
+                              Baja
+                            </button>
+                          )}
+                        </div>
+                      )}
                     </td>
                   </tr>
                 ))}
