@@ -400,7 +400,7 @@ function Alumnos() {
                     <td className="px-4 py-2 text-sm text-gray-900">{alumno.grupo}</td>
 <td className="px-4 py-2 text-sm text-gray-900">
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        aluno.estado === 'Activo' ? 'bg-green-100 text-green-800' : 
+                        alumno.estado === 'Activo' ? 'bg-green-100 text-green-800' : 
                         alumno.estado === 'Baja' ? 'bg-gray-200 text-gray-600' : 'bg-red-100 text-red-800'
                       }`}>
                         {alumno.estado}
