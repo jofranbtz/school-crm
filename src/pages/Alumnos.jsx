@@ -373,7 +373,7 @@ function Alumnos() {
       {showPerfilModal && alumnoPerfil && (
         <div className="fixed inset-0 flex items-center justify-center bg-gray-900/30 z-50" onClick={() => setShowPerfilModal(false)}>
           <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-3xl max-h-[90vh] overflow-y-auto relative" onClick={(e) => e.stopPropagation()}>
-            <button className="absolute top-2 right-2 text-red-600 hover:text-red-800 text-2xl font-bold" onClick={() => setShowPerfilModal(false)}>&times;</button>
+            <button className="absolute -top-2 -right-2 bg-red-600 text-white w-8 h-8 flex items-center justify-center rounded-full text-2xl hover:bg-red-700 transition" onClick={() => setShowPerfilModal(false)}>&times;</button>
             <div className="mb-6">
               <h2 className="text-2xl font-bold">{alumnoPerfil.nombre} {alumnoPerfil.apellido}</h2>
               <p className="text-gray-500">Matrícula: {alumnoPerfil.matricula}</p>
