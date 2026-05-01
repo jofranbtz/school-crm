@@ -1,5 +1,4 @@
 import React, { useState, useMemo } from 'react';
-import { Link } from 'react-router-dom';
 
 function Alumnos() {
   // Datos iniciales de alumnos
@@ -102,6 +101,9 @@ function Alumnos() {
   const [editIndex, setEditIndex] = useState(null);
   const [showModal, setShowModal] = useState(false);
 
+  const [showPerfilModal, setShowPerfilModal] = useState(false);
+  const [alumnoPerfil, setAlumnoPerfil] = useState(null);
+
   // Estado para modal de confirmación de baja
   const [showConfirmBaja, setShowConfirmBaja] = useState(false);
   const [alumnoParaBaja, setAlumnoParaBaja] = useState(null);
@@ -112,6 +114,11 @@ function Alumnos() {
     setFormData({ ...alumnos[index] });
     setShowModal(true);
     setErrores({});
+  };
+
+  const handleVerPerfil = (index) => {
+    setAlumnoPerfil(alumnos[index]);
+    setShowPerfilModal(true);
   };
 
 // Guardar cambios de edición
@@ -362,6 +369,61 @@ function Alumnos() {
         </div>
       )}
 
+      {/* Modal de perfil del alumno */}
+      {showPerfilModal && alumnoPerfil && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-3xl max-h-[90vh] overflow-y-auto relative">
+            <button className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 text-2xl" onClick={() => setShowPerfilModal(false)}>&times;</button>
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold">{alumnoPerfil.nombre} {alumnoPerfil.apellido}</h2>
+              <p className="text-gray-500">Matrícula: {alumnoPerfil.matricula}</p>
+            </div>
+            <div className="mb-6">
+              <h3 className="text-lg font-semibold mb-3">Información General</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="p-3 bg-gray-50 rounded-md">
+                  <p className="text-sm text-gray-500">Nombre completo</p>
+                  <p className="font-medium">{alumnoPerfil.nombre} {alumnoPerfil.apellido}</p>
+                </div>
+                <div className="p-3 bg-gray-50 rounded-md">
+                  <p className="text-sm text-gray-500">Matrícula</p>
+                  <p className="font-medium">{alumnoPerfil.matricula}</p>
+                </div>
+                <div className="p-3 bg-gray-50 rounded-md">
+                  <p className="text-sm text-gray-500">Carrera</p>
+                  <p className="font-medium">{alumnoPerfil.carrera}</p>
+                </div>
+                <div className="p-3 bg-gray-50 rounded-md">
+                  <p className="text-sm text-gray-500">Semestre</p>
+                  <p className="font-medium">{alumnoPerfil.semestre}</p>
+                </div>
+                <div className="p-3 bg-gray-50 rounded-md">
+                  <p className="text-sm text-gray-500">Grupo</p>
+                  <p className="font-medium">{alumnoPerfil.grupo}</p>
+                </div>
+                <div className="p-3 bg-gray-50 rounded-md">
+                  <p className="text-sm text-gray-500">Estado</p>
+                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                    alumnoPerfil.estado === 'Activo' ? 'bg-green-100 text-green-800' :
+                    alumnoPerfil.estado === 'Baja' ? 'bg-gray-200 text-gray-600' : 'bg-red-100 text-red-800'
+                  }`}>
+                    {alumnoPerfil.estado}
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div className="mb-6">
+              <h3 className="text-lg font-semibold mb-3">Grupos Inscritos</h3>
+              <p className="text-gray-500 text-sm">Sin grupos inscritos.</p>
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold mb-3">Calificaciones</h3>
+              <p className="text-gray-500 text-sm">Sin calificaciones registradas.</p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Modal de confirmación de baja */}
       {showConfirmBaja && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
@@ -491,12 +553,12 @@ function Alumnos() {
 {alumnosFiltrados.map((alumno, index) => (
                   <tr key={index} className={`border-t border-gray-200 hover:bg-gray-50 ${alumno.estado === 'Baja' ? 'bg-gray-100 opacity-60' : ''}`}>
                     <td className="px-4 py-2 text-sm">
-                      <Link
-                        to={`/alumnos/${alumno.matricula}`}
+                      <button
                         className="text-blue-600 hover:text-blue-800 underline hover:no-underline"
+                        onClick={() => handleVerPerfil(index)}
                       >
                         {alumno.nombre}
-                      </Link>
+                      </button>
                     </td>
                     <td className="px-4 py-2 text-sm text-gray-900">{alumno.apellido}</td>
                     <td className="px-4 py-2 text-sm text-gray-900">{alumno.matricula}</td>
