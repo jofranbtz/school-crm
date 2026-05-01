@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 
 function Alumnos() {
   // Datos iniciales de alumnos
@@ -19,6 +19,11 @@ function Alumnos() {
   });
 
   const [errores, setErrores] = useState({});
+
+  const [busqueda, setBusqueda] = useState('');
+  const [filtroCarrera, setFiltroCarrera] = useState('');
+  const [filtroSemestre, setFiltroSemestre] = useState('');
+  const [filtroEstado, setFiltroEstado] = useState('');
 
   // Carreras disponibles
   const carreras = [
@@ -133,6 +138,22 @@ function Alumnos() {
     setShowConfirmBaja(false);
     setAlumnoParaBaja(null);
   };
+
+  const alumnosFiltrados = useMemo(() => {
+    return alumnos.filter((alumno) => {
+      const textoBusqueda = busqueda.toLowerCase();
+      const coincideBusqueda = !busqueda || 
+        alumno.nombre.toLowerCase().includes(textoBusqueda) || 
+        alumno.apellido.toLowerCase().includes(textoBusqueda) ||
+        alumno.matricula.toLowerCase().includes(textoBusqueda);
+
+      const coincideCarrera = !filtroCarrera || alumno.carrera === filtroCarrera;
+      const coincideSemestre = !filtroSemestre || alumno.semestre === filtroSemestre;
+      const coincideEstado = !filtroEstado || alumno.estado === filtroEstado;
+
+      return coincideBusqueda && coincideCarrera && coincideSemestre && coincideEstado;
+    });
+  }, [alumnos, busqueda, filtroCarrera, filtroSemestre, filtroEstado]);
 
   return (
     <section className="p-6">
@@ -370,9 +391,81 @@ function Alumnos() {
       <div>
         <h2 className="text-xl font-semibold mb-4">Lista de Alumnos</h2>
 
-        {alumnos.length === 0 ? (
+        {/* Barra de búsqueda y filtros */}
+        <div className="mb-4 p-4 bg-white rounded-lg shadow-md border border-gray-200">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div>
+              <label htmlFor="busqueda" className="block text-sm font-medium text-gray-700 mb-1">Buscar</label>
+              <input
+                type="text"
+                id="busqueda"
+                value={busqueda}
+                onChange={(e) => setBusqueda(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Nombre, apellido o matrícula"
+              />
+            </div>
+            <div>
+              <label htmlFor="filtroCarrera" className="block text-sm font-medium text-gray-700 mb-1">Carrera</label>
+              <select
+                id="filtroCarrera"
+                value={filtroCarrera}
+                onChange={(e) => setFiltroCarrera(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">Todas</option>
+                {carreras.map((carrera) => (
+                  <option key={carrera} value={carrera}>{carrera}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label htmlFor="filtroSemestre" className="block text-sm font-medium text-gray-700 mb-1">Semestre</label>
+              <select
+                id="filtroSemestre"
+                value={filtroSemestre}
+                onChange={(e) => setFiltroSemestre(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">Todos</option>
+                {semestres.map((semestre) => (
+                  <option key={semestre} value={semestre}>Semestre {semestre}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label htmlFor="filtroEstado" className="block text-sm font-medium text-gray-700 mb-1">Estado</label>
+              <select
+                id="filtroEstado"
+                value={filtroEstado}
+                onChange={(e) => setFiltroEstado(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">Todos</option>
+                <option value="Activo">Activo</option>
+                <option value="Inactivo">Inactivo</option>
+                <option value="Baja">Baja</option>
+              </select>
+            </div>
+          </div>
+          {(busqueda || filtroCarrera || filtroSemestre || filtroEstado) && (
+            <button
+              className="mt-3 text-sm text-blue-600 hover:text-blue-800"
+              onClick={() => {
+                setBusqueda('');
+                setFiltroCarrera('');
+                setFiltroSemestre('');
+                setFiltroEstado('');
+              }}
+            >
+              Limpiar filtros
+            </button>
+          )}
+        </div>
+
+        {alumnosFiltrados.length === 0 ? (
           <div className="text-center py-8">
-            <p className="text-gray-500">No hay alumnos registrados.</p>
+            <p className="text-gray-500">No hay alumnos que coincidan con los filtros aplicados.</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -390,7 +483,7 @@ function Alumnos() {
                 </tr>
               </thead>
               <tbody>
-{alumnos.map((alumno, index) => (
+{alumnosFiltrados.map((alumno, index) => (
                   <tr key={index} className={`border-t border-gray-200 hover:bg-gray-50 ${alumno.estado === 'Baja' ? 'bg-gray-100 opacity-60' : ''}`}>
                     <td className="px-4 py-2 text-sm text-gray-900">{alumno.nombre}</td>
                     <td className="px-4 py-2 text-sm text-gray-900">{alumno.apellido}</td>
