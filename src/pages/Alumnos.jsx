@@ -142,10 +142,14 @@ function Alumnos() {
   const alumnosFiltrados = useMemo(() => {
     return alumnos.filter((alumno) => {
       const textoBusqueda = busqueda.toLowerCase();
-      const coincideBusqueda = !busqueda || 
-        alumno.nombre.toLowerCase().includes(textoBusqueda) || 
-        alumno.apellido.toLowerCase().includes(textoBusqueda) ||
-        alumno.matricula.toLowerCase().includes(textoBusqueda);
+      const coincideBusqueda = !busqueda || (() => {
+        const terminos = textoBusqueda.split(/\s+/).filter(t => t.length > 0);
+        return terminos.every((termino) =>
+          alumno.nombre.toLowerCase().includes(termino) ||
+          alumno.apellido.toLowerCase().includes(termino) ||
+          alumno.matricula.toLowerCase().includes(termino)
+        );
+      })();
 
       const coincideCarrera = !filtroCarrera || alumno.carrera === filtroCarrera;
       const coincideSemestre = !filtroSemestre || alumno.semestre === filtroSemestre;
