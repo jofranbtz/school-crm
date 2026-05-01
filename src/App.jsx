@@ -12,6 +12,7 @@ import Grupos from './pages/Grupos.jsx'
 import Calificaciones from './pages/Calificaciones.jsx'
 import Dashboard from './pages/Dashboard.jsx'
 import Materias from './pages/Materias.jsx'
+import PerfilAlumno from './pages/PerfilAlumno.jsx'
 
 function App() {
   useEffect(() => {
@@ -32,6 +33,7 @@ function App() {
         <Route index element={<Home />} />
         <Route path="login" element={<Login />} />
         <Route path="alumnos" element={<Alumnos />} />
+        <Route path="alumnos/:matricula" element={<PerfilAlumno />} />
         <Route path="grupos" element={<Grupos />} />
         <Route path="calificaciones" element={<Calificaciones />} />
         <Route path="dashboard" element={<Dashboard />} />

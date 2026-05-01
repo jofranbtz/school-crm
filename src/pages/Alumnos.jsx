@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { Link } from 'react-router-dom';
 
 function Alumnos() {
   // Datos iniciales de alumnos
@@ -489,7 +490,14 @@ function Alumnos() {
               <tbody>
 {alumnosFiltrados.map((alumno, index) => (
                   <tr key={index} className={`border-t border-gray-200 hover:bg-gray-50 ${alumno.estado === 'Baja' ? 'bg-gray-100 opacity-60' : ''}`}>
-                    <td className="px-4 py-2 text-sm text-gray-900">{alumno.nombre}</td>
+                    <td className="px-4 py-2 text-sm">
+                      <Link
+                        to={`/alumnos/${alumno.matricula}`}
+                        className="text-blue-600 hover:text-blue-800 underline hover:no-underline"
+                      >
+                        {alumno.nombre}
+                      </Link>
+                    </td>
                     <td className="px-4 py-2 text-sm text-gray-900">{alumno.apellido}</td>
                     <td className="px-4 py-2 text-sm text-gray-900">{alumno.matricula}</td>
                     <td className="px-4 py-2 text-sm text-gray-900">{alumno.carrera}</td>
