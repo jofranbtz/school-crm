@@ -1,4 +1,6 @@
 import React, { useState, useMemo } from 'react';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 function Alumnos() {
   // Datos iniciales de alumnos
@@ -166,6 +168,36 @@ function Alumnos() {
       return coincideBusqueda && coincideCarrera && coincideSemestre && coincideEstado;
     });
   }, [alumnos, busqueda, filtroCarrera, filtroSemestre, filtroEstado]);
+
+  const handleExportarPDF = () => {
+    const doc = new jsPDF();
+    const fecha = new Date().toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' });
+
+    doc.setFontSize(18);
+    doc.text('School CRM - Lista de Alumnos', 14, 20);
+    doc.setFontSize(10);
+    doc.setTextColor(100);
+    doc.text(`Fecha de generación: ${fecha}`, 14, 28);
+    if (busqueda || filtroCarrera || filtroSemestre || filtroEstado) {
+      const filtros = [];
+      if (busqueda) filtros.push(`Búsqueda: ${busqueda}`);
+      if (filtroCarrera) filtros.push(`Carrera: ${filtroCarrera}`);
+      if (filtroSemestre) filtros.push(`Semestre: ${filtroSemestre}`);
+      if (filtroEstado) filtros.push(`Estado: ${filtroEstado}`);
+      doc.text(`Filtros: ${filtros.join(', ')}`, 14, 34);
+    }
+
+    autoTable(doc, {
+      startY: (busqueda || filtroCarrera || filtroSemestre || filtroEstado) ? 38 : 34,
+      head: [['Nombre', 'Apellido', 'Matrícula', 'Carrera', 'Semestre', 'Estado']],
+      body: alumnosFiltrados.map(a => [a.nombre, a.apellido, a.matricula, a.carrera, a.semestre, a.estado]),
+      theme: 'grid',
+      headStyles: { fillColor: [31, 64, 119] },
+      styles: { fontSize: 8 },
+    });
+
+    doc.save(`alumnos_${Date.now()}.pdf`);
+  };
 
   return (
     <section className="p-6">
@@ -512,7 +544,15 @@ function Alumnos() {
 
       {/* Lista de alumnos */}
       <div>
-        <h2 className="text-xl font-semibold mb-4">Lista de Alumnos</h2>
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-semibold">Lista de Alumnos</h2>
+          <button
+            className="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-md transition flex items-center gap-2"
+            onClick={handleExportarPDF}
+          >
+            Exportar a PDF
+          </button>
+        </div>
 
         {/* Barra de búsqueda y filtros */}
         <div className="mb-4 p-4 bg-white rounded-lg shadow-md border border-gray-200">
