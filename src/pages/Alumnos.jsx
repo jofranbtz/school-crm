@@ -110,6 +110,10 @@ function Alumnos() {
   const [showConfirmBaja, setShowConfirmBaja] = useState(false);
   const [alumnoParaBaja, setAlumnoParaBaja] = useState(null);
 
+  // Estado para modal de confirmación de reactivación
+  const [showConfirmReactivar, setShowConfirmReactivar] = useState(false);
+  const [alumnoParaReactivar, setAlumnoParaReactivar] = useState(null);
+
   // Abrir modal y cargar datos del alumno
   const handleEditAlumno = (index) => {
     setEditIndex(index);
@@ -147,6 +151,21 @@ function Alumnos() {
     ));
     setShowConfirmBaja(false);
     setAlumnoParaBaja(null);
+  };
+
+  // Abrir modal de confirmación de reactivación
+  const handleConfirmReactivar = (index) => {
+    setAlumnoParaReactivar(index);
+    setShowConfirmReactivar(true);
+  };
+
+  // Confirmar la reactivación del alumno
+  const handleReactivarAlumno = () => {
+    setAlumnos(prev => prev.map((al, idx) => 
+      idx === alumnoParaReactivar ? { ...al, estado: 'Activo' } : al
+    ));
+    setShowConfirmReactivar(false);
+    setAlumnoParaReactivar(null);
   };
 
   const alumnosFiltrados = useMemo(() => {
@@ -542,6 +561,36 @@ function Alumnos() {
         </div>
       )}
 
+      {/* Modal de confirmación de reactivación */}
+      {showConfirmReactivar && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+            <h2 className="text-xl font-semibold mb-4">Confirmar Reactivación</h2>
+            <p className="text-gray-700 mb-6">
+              ¿Estás seguro de que deseas reactivar al alumno <strong>{alumnos[alumnoParaReactivar]?.nombre} {alumnos[alumnoParaReactivar]?.apellido}</strong>? 
+              Su estado cambiará a "Activo".
+            </p>
+            <div className="flex gap-4 justify-end">
+              <button
+                className="bg-gray-300 hover:bg-gray-400 text-gray-700 font-medium py-2 px-4 rounded-md transition"
+                onClick={() => {
+                  setShowConfirmReactivar(false);
+                  setAlumnoParaReactivar(null);
+                }}
+              >
+                Cancelar
+              </button>
+              <button
+                className="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-md transition"
+                onClick={handleReactivarAlumno}
+              >
+                Confirmar Reactivación
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Lista de alumnos */}
       <div>
         <div className="flex justify-between items-center mb-4">
@@ -670,7 +719,16 @@ function Alumnos() {
                       </span>
                     </td>
                     <td className="px-4 py-2 text-sm text-gray-900">
-                      {alumno.estado !== 'Baja' && (
+                      {alumno.estado === 'Baja' ? (
+                        <div className="flex gap-2">
+                          <button
+                            className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded"
+                            onClick={() => handleConfirmReactivar(index)}
+                          >
+                            Reactivar
+                          </button>
+                        </div>
+                      ) : (
                         <div className="flex gap-2">
                           <button
                             className="bg-yellow-400 hover:bg-yellow-500 text-white px-3 py-1 rounded"
