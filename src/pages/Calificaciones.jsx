@@ -395,5 +395,4 @@ function Calificaciones() {
     </section>
   );
 }
-
 export default Calificaciones;
