@@ -23,6 +23,10 @@ function Calificaciones() {
   ]);
 
   const [grupoSeleccionado, setGrupoSeleccionado] = useState("208");
+  const [ponderacionesPorGrupo, setPonderacionesPorGrupo] = useState({});
+  const defaultPonderaciones = { p1: 33, p2: 33, p3: 34 };
+  const [pesoActual, setPesoActual] = useState(defaultPonderaciones);
+  const [errorPonderaciones, setErrorPonderaciones] = useState("");
 
   const materia = "Matemáticas";
   const cicloEscolar = "2025-2026";
@@ -83,13 +87,54 @@ function Calificaciones() {
     setAlumnos(nuevos);
   };
 
+  const validarPonderaciones = (pesos) => {
+    const total = (Number(pesos.p1) || 0) + (Number(pesos.p2) || 0) + (Number(pesos.p3) || 0);
+    if (total !== 100) {
+      setErrorPonderaciones("Los porcentajes deben sumar exactamente 100%.");
+      return false;
+    }
+
+    if ([pesos.p1, pesos.p2, pesos.p3].some((value) => value === "" || Number(value) < 0 || Number(value) > 100)) {
+      setErrorPonderaciones("Ingresa porcentajes válidos entre 0 y 100 para cada parcial.");
+      return false;
+    }
+
+    setErrorPonderaciones("");
+    return true;
+  };
+
+  const guardarPonderaciones = () => {
+    const pesos = {
+      p1: Number(pesoActual.p1),
+      p2: Number(pesoActual.p2),
+      p3: Number(pesoActual.p3),
+    };
+
+    if (!validarPonderaciones(pesoActual)) {
+      return;
+    }
+
+    setPonderacionesPorGrupo({
+      ...ponderacionesPorGrupo,
+      [grupoSeleccionado]: pesos,
+    });
+    setErrorPonderaciones("");
+  };
+
+  const obtenerPonderaciones = () => {
+    return ponderacionesPorGrupo[grupoSeleccionado] ?? null;
+  };
+
   // Calcular calificación final
   const calcularFinal = (a) => {
     const p1 = parseFloat(a.p1) || 0;
     const p2 = parseFloat(a.p2) || 0;
     const p3 = parseFloat(a.p3) || 0;
+    const pesos = obtenerPonderaciones();
 
-    const promedioParciales = (p1 + p2 + p3) / 3;
+    const promedioParciales = pesos
+      ? (p1 * pesos.p1 + p2 * pesos.p2 + p3 * pesos.p3) / 100
+      : (p1 + p2 + p3) / 3;
 
     if (a.ord === "") {
       return promedioParciales.toFixed(1);
@@ -144,7 +189,12 @@ function Calificaciones() {
         <select
           id="grupo"
           value={grupoSeleccionado}
-          onChange={(e) => setGrupoSeleccionado(e.target.value)}
+          onChange={(e) => {
+            const grupo = e.target.value;
+            setGrupoSeleccionado(grupo);
+            setPesoActual(ponderacionesPorGrupo[grupo] ?? defaultPonderaciones);
+            setErrorPonderaciones("");
+          }}
           className="w-full md:w-1/3 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           {grupos.map((g) => (
@@ -153,6 +203,58 @@ function Calificaciones() {
             </option>
           ))}
         </select>
+
+        <div className="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+          <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+            <div>
+              <p className="text-sm font-semibold text-gray-900">Configurar ponderaciones</p>
+              <p className="text-xs text-gray-600">Solo parcial 1, 2 y 3. Si no se define, se usa promedio simple.</p>
+            </div>
+            <p className="text-sm text-gray-700">
+              {obtenerPonderaciones()
+                ? `Ponderaciones guardadas para Grupo ${grupoSeleccionado}`
+                : `Sin ponderaciones definidas`}
+            </p>
+          </div>
+
+          <div className="mt-4 grid grid-cols-3 gap-4">
+            {['p1', 'p2', 'p3'].map((campo, index) => (
+              <label key={campo} className="block text-sm font-medium text-gray-700">
+                Parcial {index + 1}
+                <input
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={pesoActual[campo]}
+                  onChange={(e) =>
+                    setPesoActual({
+                      ...pesoActual,
+                      [campo]: e.target.value,
+                    })
+                  }
+                  className="mt-1 w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </label>
+            ))}
+          </div>
+
+          <div className="mt-4 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+            <p className="text-sm text-gray-700">
+              Total: {(Number(pesoActual.p1) || 0) + (Number(pesoActual.p2) || 0) + (Number(pesoActual.p3) || 0)}%
+            </p>
+            <button
+              type="button"
+              onClick={guardarPonderaciones}
+              className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              Guardar ponderaciones
+            </button>
+          </div>
+
+          {errorPonderaciones && (
+            <p className="mt-2 text-sm text-red-600">{errorPonderaciones}</p>
+          )}
+        </div>
       </div>
 
       {/* Estadísticas del grupo */}
