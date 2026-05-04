@@ -1,81 +1,86 @@
 import { useState } from "react";
+import { useApp } from "../context/AppContext";
 
 function Materias() {
-  const [materias, setMaterias] = useState([]);
+  const { materias, setMaterias } = useApp();
+
   const [showForm, setShowForm] = useState(false);
+  const [editando, setEditando] = useState(null);
 
   const [form, setForm] = useState({
     clave: "",
     nombre: "",
-    calificacion: "",
     semestre: "",
   });
-
-  const handleChange = (e) => {
-    setForm({
-      ...form,
-      [e.target.name]: e.target.value,
-    });
-  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    if (!form.clave || !form.nombre || !form.calificacion || !form.semestre) {
+    if (!form.clave || !form.nombre || !form.semestre) {
       alert("Todos los campos son obligatorios");
       return;
     }
 
-    setMaterias([...materias, form]);
+    if (editando !== null) {
+      const nuevas = materias.map((m) =>
+        m.id === editando ? { ...form, id: editando } : m
+      );
+      setMaterias(nuevas);
+      setEditando(null);
+    } else {
+      setMaterias([...materias, { ...form, id: Date.now() }]);
+    }
 
-    setForm({
-      clave: "",
-      nombre: "",
-      calificacion: "",
-      semestre: "",
-    });
-
+    setForm({ clave: "", nombre: "", semestre: "" });
     setShowForm(false);
+  };
+
+  const eliminar = (id) => {
+    setMaterias(materias.filter((m) => m.id !== id));
+  };
+
+  const editar = (m) => {
+    setForm(m);
+    setEditando(m.id);
+    setShowForm(true);
   };
 
   return (
     <div className="p-6 max-w-5xl mx-auto">
 
-      {/* HEADER */}
       <div className="text-center mb-6">
         <h1 className="text-3xl font-bold mb-4">Materias</h1>
-
-        <button
-          onClick={() => setShowForm(true)}
-          className="bg-blue-500 hover:bg-blue-600 text-white text-2xl w-12 h-12 rounded-full flex items-center justify-center mx-auto shadow-lg transition"
-        >
+        <button onClick={() => setShowForm(true)}
+          className="bg-blue-500 text-white w-12 h-12 rounded-full text-2xl">
           +
         </button>
       </div>
 
-      {/* TABLA */}
       <div className="bg-white shadow-lg rounded-lg overflow-hidden">
         {materias.length === 0 ? (
-          <p className="p-6 text-gray-500 text-center">
-            No hay materias registradas
-          </p>
+          <p className="p-6 text-center">No hay materias</p>
         ) : (
-          <table className="w-full">
+          <table className="w-full text-center">
             <thead className="bg-blue-500 text-white">
               <tr>
-                <th className="p-3">Clave</th>
-                <th className="p-3">Nombre</th>
-                <th className="p-3">Calificación</th>
-                <th className="p-3">Semestre</th>
+                <th>ID</th>
+                <th>Clave</th>
+                <th>Nombre</th>
+                <th>Semestre</th>
+                <th>Acciones</th>
               </tr>
             </thead>
             <tbody>
-              {materias.map((m, index) => (
-                <tr key={index} className="border-t text-center hover:bg-gray-100">
-                  <td className="p-2">{m.clave}</td>
-                  <td className="p-2">{m.nombre}</td>
-                  <td className="p-2">{m.calificacion}</td>
-                  <td className="p-2">{m.semestre}</td>
+              {materias.map((m) => (
+                <tr key={m.id}>
+                  <td>{m.id}</td>                  
+                  <td>{m.clave}</td>
+                  <td>{m.nombre}</td>
+                  <td>{m.semestre}</td>
+                  <td className="space-x-2">
+                    <button onClick={() => editar(m)}>✏️</button>
+                    <button onClick={() => eliminar(m.id)}>🗑️</button>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -83,61 +88,17 @@ function Materias() {
         )}
       </div>
 
-      {/* MODAL */}
       {showForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center">
-
-          <div className="bg-gray-900 text-white p-6 rounded-xl w-full max-w-md shadow-2xl border border-gray-700">
-            <h2 className="text-xl font-bold mb-4 text-center">
-              Nueva Materia
-            </h2>
-
+        <div className="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center">
+          <div className="bg-gray-900 p-6 rounded text-white w-96">
             <form onSubmit={handleSubmit} className="space-y-3">
-              <input
-                type="text"
-                name="clave"
-                placeholder="Clave"
-                value={form.clave}
-                onChange={handleChange}
-                className="p-2 w-full rounded bg-gray-800 border border-gray-600"
-              />
-
-              <input
-                type="text"
-                name="nombre"
-                placeholder="Nombre"
-                value={form.nombre}
-                onChange={handleChange}
-                className="p-2 w-full rounded bg-gray-800 border border-gray-600"
-              />
-
-              <input
-                type="number"
-                min="0"
-                max="10"
-                step="0.1"
-                name="calificacion"
-                placeholder="Calificación"
-                value={form.calificacion}
-                onChange={(e) => {
-                  const value = e.target.value;
-
-                  if (value === "" || (parseFloat(value) >= 0 && parseFloat(value) <= 10)) {
-                    setForm({
-                      ...form,
-                      calificacion: value,
-                    });
-                  }
-                }}
-                className="p-2 w-full rounded bg-gray-800 border border-gray-600"
-              />
-
-              {/* SELECT DE SEMESTRE */}
+              <input name="clave" value={form.clave} onChange={(e)=>setForm({...form,clave:e.target.value})} placeholder="Clave" className="w-full p-2 bg-blue-500 text-white rounded"/>
+              <input name="nombre" value={form.nombre} onChange={(e)=>setForm({...form,nombre:e.target.value})} placeholder="Nombre" className="w-full p-2 bg-blue-500 text-white rounded"/>
+              
               <select
-                name="semestre"
                 value={form.semestre}
-                onChange={handleChange}
-                className="p-2 w-full rounded bg-gray-800 border border-gray-600"
+                onChange={(e)=>setForm({...form, semestre: e.target.value})}
+                className="w-full p-2 bg-blue-500 text-white rounded"
               >
                 <option value="">Selecciona semestre</option>
                 <option>Primero</option>
@@ -152,25 +113,12 @@ function Materias() {
                 <option>Décimo</option>
               </select>
 
-              <div className="flex justify-end gap-2 mt-4">
-                <button
-                  type="button"
-                  onClick={() => setShowForm(false)}
-                  className="px-4 py-2 bg-gray-600 rounded hover:bg-gray-700"
-                >
-                  Cancelar
-                </button>
-
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-blue-500 rounded hover:bg-blue-600"
-                >
-                  Guardar
-                </button>
+              <div className="flex gap-2">
+                <button className="bg-green-500 px-4 py-2">Guardar</button>
+                <button type="button" onClick={()=>setShowForm(false)} className="bg-red-500 px-4 py-2">Cancelar</button>
               </div>
             </form>
           </div>
-
         </div>
       )}
     </div>
