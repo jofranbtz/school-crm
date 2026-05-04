@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 function Alumnos() {
   // Datos iniciales de alumnos
@@ -19,6 +21,11 @@ function Alumnos() {
   });
 
   const [errores, setErrores] = useState({});
+
+  const [busqueda, setBusqueda] = useState('');
+  const [filtroCarrera, setFiltroCarrera] = useState('');
+  const [filtroSemestre, setFiltroSemestre] = useState('');
+  const [filtroEstado, setFiltroEstado] = useState('');
 
   // Carreras disponibles
   const carreras = [
@@ -96,9 +103,16 @@ function Alumnos() {
   const [editIndex, setEditIndex] = useState(null);
   const [showModal, setShowModal] = useState(false);
 
+  const [showPerfilModal, setShowPerfilModal] = useState(false);
+  const [alumnoPerfil, setAlumnoPerfil] = useState(null);
+
   // Estado para modal de confirmación de baja
   const [showConfirmBaja, setShowConfirmBaja] = useState(false);
   const [alumnoParaBaja, setAlumnoParaBaja] = useState(null);
+
+  // Estado para modal de confirmación de reactivación
+  const [showConfirmReactivar, setShowConfirmReactivar] = useState(false);
+  const [alumnoParaReactivar, setAlumnoParaReactivar] = useState(null);
 
   // Abrir modal y cargar datos del alumno
   const handleEditAlumno = (index) => {
@@ -106,6 +120,11 @@ function Alumnos() {
     setFormData({ ...alumnos[index] });
     setShowModal(true);
     setErrores({});
+  };
+
+  const handleVerPerfil = (index) => {
+    setAlumnoPerfil(alumnos[index]);
+    setShowPerfilModal(true);
   };
 
 // Guardar cambios de edición
@@ -132,6 +151,71 @@ function Alumnos() {
     ));
     setShowConfirmBaja(false);
     setAlumnoParaBaja(null);
+  };
+
+  // Abrir modal de confirmación de reactivación
+  const handleConfirmReactivar = (index) => {
+    setAlumnoParaReactivar(index);
+    setShowConfirmReactivar(true);
+  };
+
+  // Confirmar la reactivación del alumno
+  const handleReactivarAlumno = () => {
+    setAlumnos(prev => prev.map((al, idx) => 
+      idx === alumnoParaReactivar ? { ...al, estado: 'Activo' } : al
+    ));
+    setShowConfirmReactivar(false);
+    setAlumnoParaReactivar(null);
+  };
+
+  const alumnosFiltrados = useMemo(() => {
+    return alumnos.filter((alumno) => {
+      const textoBusqueda = busqueda.toLowerCase();
+      const coincideBusqueda = !busqueda || (() => {
+        const terminos = textoBusqueda.split(/\s+/).filter(t => t.length > 0);
+        return terminos.every((termino) =>
+          alumno.nombre.toLowerCase().includes(termino) ||
+          alumno.apellido.toLowerCase().includes(termino) ||
+          alumno.matricula.toLowerCase().includes(termino)
+        );
+      })();
+
+      const coincideCarrera = !filtroCarrera || alumno.carrera === filtroCarrera;
+      const coincideSemestre = !filtroSemestre || alumno.semestre === filtroSemestre;
+      const coincideEstado = !filtroEstado || alumno.estado === filtroEstado;
+
+      return coincideBusqueda && coincideCarrera && coincideSemestre && coincideEstado;
+    });
+  }, [alumnos, busqueda, filtroCarrera, filtroSemestre, filtroEstado]);
+
+  const handleExportarPDF = () => {
+    const doc = new jsPDF();
+    const fecha = new Date().toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' });
+
+    doc.setFontSize(18);
+    doc.text('School CRM - Lista de Alumnos', 14, 20);
+    doc.setFontSize(10);
+    doc.setTextColor(100);
+    doc.text(`Fecha de generación: ${fecha}`, 14, 28);
+    if (busqueda || filtroCarrera || filtroSemestre || filtroEstado) {
+      const filtros = [];
+      if (busqueda) filtros.push(`Búsqueda: ${busqueda}`);
+      if (filtroCarrera) filtros.push(`Carrera: ${filtroCarrera}`);
+      if (filtroSemestre) filtros.push(`Semestre: ${filtroSemestre}`);
+      if (filtroEstado) filtros.push(`Estado: ${filtroEstado}`);
+      doc.text(`Filtros: ${filtros.join(', ')}`, 14, 34);
+    }
+
+    autoTable(doc, {
+      startY: (busqueda || filtroCarrera || filtroSemestre || filtroEstado) ? 38 : 34,
+      head: [['Nombre', 'Apellido', 'Matrícula', 'Carrera', 'Semestre', 'Estado']],
+      body: alumnosFiltrados.map(a => [a.nombre, a.apellido, a.matricula, a.carrera, a.semestre, a.estado]),
+      theme: 'grid',
+      headStyles: { fillColor: [31, 64, 119] },
+      styles: { fontSize: 8 },
+    });
+
+    doc.save(`alumnos_${Date.now()}.pdf`);
   };
 
   return (
@@ -336,6 +420,117 @@ function Alumnos() {
         </div>
       )}
 
+      {/* Modal de perfil del alumno */}
+      {showPerfilModal && alumnoPerfil && (
+        <div className="fixed inset-0 flex items-center justify-center bg-gray-900/30 z-50" onClick={() => setShowPerfilModal(false)}>
+          <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-3xl max-h-[90vh] overflow-y-auto relative" onClick={(e) => e.stopPropagation()}>
+            <button className="absolute -top-2 -right-2 bg-red-600 text-white w-8 h-8 flex items-center justify-center rounded-full text-2xl hover:bg-red-700 transition" onClick={() => setShowPerfilModal(false)}>&times;</button>
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold">{alumnoPerfil.nombre} {alumnoPerfil.apellido}</h2>
+              <p className="text-gray-500">Matrícula: {alumnoPerfil.matricula}</p>
+            </div>
+            <div className="mb-6">
+              <h3 className="text-lg font-semibold mb-3">Información General</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="p-3 bg-gray-50 rounded-md">
+                  <p className="text-sm text-gray-500">Nombre completo</p>
+                  <p className="font-medium">{alumnoPerfil.nombre} {alumnoPerfil.apellido}</p>
+                </div>
+                <div className="p-3 bg-gray-50 rounded-md">
+                  <p className="text-sm text-gray-500">Matrícula</p>
+                  <p className="font-medium">{alumnoPerfil.matricula}</p>
+                </div>
+                <div className="p-3 bg-gray-50 rounded-md">
+                  <p className="text-sm text-gray-500">Carrera</p>
+                  <p className="font-medium">{alumnoPerfil.carrera}</p>
+                </div>
+                <div className="p-3 bg-gray-50 rounded-md">
+                  <p className="text-sm text-gray-500">Semestre</p>
+                  <p className="font-medium">{alumnoPerfil.semestre}</p>
+                </div>
+                <div className="p-3 bg-gray-50 rounded-md">
+                  <p className="text-sm text-gray-500">Grupo</p>
+                  <p className="font-medium">{alumnoPerfil.grupo}</p>
+                </div>
+                <div className="p-3 bg-gray-50 rounded-md">
+                  <p className="text-sm text-gray-500">Estado</p>
+                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                    alumnoPerfil.estado === 'Activo' ? 'bg-green-100 text-green-800' :
+                    alumnoPerfil.estado === 'Baja' ? 'bg-gray-200 text-gray-600' : 'bg-red-100 text-red-800'
+                  }`}>
+                    {alumnoPerfil.estado}
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div className="mb-6">
+              <h3 className="text-lg font-semibold mb-3">Grupos Inscritos</h3>
+              <div className="overflow-x-auto">
+                <table className="min-w-full border border-gray-200 rounded-lg">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Grupo</th>
+                      <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Materia</th>
+                      <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Ciclo Escolar</th>
+                      <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Docente</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr className="border-t border-gray-200">
+                      <td className="px-4 py-2 text-sm">GPO-101</td>
+                      <td className="px-4 py-2 text-sm">Matemáticas Avanzadas</td>
+                      <td className="px-4 py-2 text-sm">2026-1</td>
+                      <td className="px-4 py-2 text-sm">Dr. Ramírez</td>
+                    </tr>
+                    <tr className="border-t border-gray-200">
+                      <td className="px-4 py-2 text-sm">GPO-205</td>
+                      <td className="px-4 py-2 text-sm">Programación Web</td>
+                      <td className="px-4 py-2 text-sm">2026-1</td>
+                      <td className="px-4 py-2 text-sm">Ing. Torres</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold mb-3">Calificaciones</h3>
+              <div className="overflow-x-auto">
+                <table className="min-w-full border border-gray-200 rounded-lg">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Materia</th>
+                      <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Parcial 1</th>
+                      <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Parcial 2</th>
+                      <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Parcial 3</th>
+                      <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Final</th>
+                      <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Estado</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr className="border-t border-gray-200">
+                      <td className="px-4 py-2 text-sm">Matemáticas Avanzadas</td>
+                      <td className="px-4 py-2 text-sm">8.5</td>
+                      <td className="px-4 py-2 text-sm">9.0</td>
+                      <td className="px-4 py-2 text-sm">8.0</td>
+                      <td className="px-4 py-2 text-sm font-semibold">8.5</td>
+                      <td className="px-4 py-2 text-sm"><span className="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">Aprobado</span></td>
+                    </tr>
+                    <tr className="border-t border-gray-200">
+                      <td className="px-4 py-2 text-sm">Programación Web</td>
+                      <td className="px-4 py-2 text-sm">9.0</td>
+                      <td className="px-4 py-2 text-sm">8.5</td>
+                      <td className="px-4 py-2 text-sm">9.5</td>
+                      <td className="px-4 py-2 text-sm font-semibold">9.0</td>
+                      <td className="px-4 py-2 text-sm"><span className="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">Aprobado</span></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Modal de confirmación de baja */}
       {showConfirmBaja && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
@@ -366,13 +561,123 @@ function Alumnos() {
         </div>
       )}
 
+      {/* Modal de confirmación de reactivación */}
+      {showConfirmReactivar && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+            <h2 className="text-xl font-semibold mb-4">Confirmar Reactivación</h2>
+            <p className="text-gray-700 mb-6">
+              ¿Estás seguro de que deseas reactivar al alumno <strong>{alumnos[alumnoParaReactivar]?.nombre} {alumnos[alumnoParaReactivar]?.apellido}</strong>? 
+              Su estado cambiará a "Activo".
+            </p>
+            <div className="flex gap-4 justify-end">
+              <button
+                className="bg-gray-300 hover:bg-gray-400 text-gray-700 font-medium py-2 px-4 rounded-md transition"
+                onClick={() => {
+                  setShowConfirmReactivar(false);
+                  setAlumnoParaReactivar(null);
+                }}
+              >
+                Cancelar
+              </button>
+              <button
+                className="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-md transition"
+                onClick={handleReactivarAlumno}
+              >
+                Confirmar Reactivación
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Lista de alumnos */}
       <div>
-        <h2 className="text-xl font-semibold mb-4">Lista de Alumnos</h2>
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-semibold">Lista de Alumnos</h2>
+          <button
+            className="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-md transition flex items-center gap-2"
+            onClick={handleExportarPDF}
+          >
+            Exportar a PDF
+          </button>
+        </div>
 
-        {alumnos.length === 0 ? (
+        {/* Barra de búsqueda y filtros */}
+        <div className="mb-4 p-4 bg-white rounded-lg shadow-md border border-gray-200">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div>
+              <label htmlFor="busqueda" className="block text-sm font-medium text-gray-700 mb-1">Buscar</label>
+              <input
+                type="text"
+                id="busqueda"
+                value={busqueda}
+                onChange={(e) => setBusqueda(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Nombre, apellido o matrícula"
+              />
+            </div>
+            <div>
+              <label htmlFor="filtroCarrera" className="block text-sm font-medium text-gray-700 mb-1">Carrera</label>
+              <select
+                id="filtroCarrera"
+                value={filtroCarrera}
+                onChange={(e) => setFiltroCarrera(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">Todas</option>
+                {carreras.map((carrera) => (
+                  <option key={carrera} value={carrera}>{carrera}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label htmlFor="filtroSemestre" className="block text-sm font-medium text-gray-700 mb-1">Semestre</label>
+              <select
+                id="filtroSemestre"
+                value={filtroSemestre}
+                onChange={(e) => setFiltroSemestre(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">Todos</option>
+                {semestres.map((semestre) => (
+                  <option key={semestre} value={semestre}>Semestre {semestre}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label htmlFor="filtroEstado" className="block text-sm font-medium text-gray-700 mb-1">Estado</label>
+              <select
+                id="filtroEstado"
+                value={filtroEstado}
+                onChange={(e) => setFiltroEstado(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">Todos</option>
+                <option value="Activo">Activo</option>
+                <option value="Inactivo">Inactivo</option>
+                <option value="Baja">Baja</option>
+              </select>
+            </div>
+          </div>
+          {(busqueda || filtroCarrera || filtroSemestre || filtroEstado) && (
+            <button
+              className="mt-3 text-sm text-blue-600 hover:text-blue-800"
+              onClick={() => {
+                setBusqueda('');
+                setFiltroCarrera('');
+                setFiltroSemestre('');
+                setFiltroEstado('');
+              }}
+            >
+              Limpiar filtros
+            </button>
+          )}
+        </div>
+
+        {alumnosFiltrados.length === 0 ? (
           <div className="text-center py-8">
-            <p className="text-gray-500">No hay alumnos registrados.</p>
+            <p className="text-gray-500">No hay alumnos que coincidan con los filtros aplicados.</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -390,9 +695,16 @@ function Alumnos() {
                 </tr>
               </thead>
               <tbody>
-{alumnos.map((alumno, index) => (
+{alumnosFiltrados.map((alumno, index) => (
                   <tr key={index} className={`border-t border-gray-200 hover:bg-gray-50 ${alumno.estado === 'Baja' ? 'bg-gray-100 opacity-60' : ''}`}>
-                    <td className="px-4 py-2 text-sm text-gray-900">{alumno.nombre}</td>
+                    <td className="px-4 py-2 text-sm">
+                      <button
+                        className="text-blue-600 hover:text-blue-800 underline hover:no-underline"
+                        onClick={() => handleVerPerfil(index)}
+                      >
+                        {alumno.nombre}
+                      </button>
+                    </td>
                     <td className="px-4 py-2 text-sm text-gray-900">{alumno.apellido}</td>
                     <td className="px-4 py-2 text-sm text-gray-900">{alumno.matricula}</td>
                     <td className="px-4 py-2 text-sm text-gray-900">{alumno.carrera}</td>
@@ -407,7 +719,16 @@ function Alumnos() {
                       </span>
                     </td>
                     <td className="px-4 py-2 text-sm text-gray-900">
-                      {alumno.estado !== 'Baja' && (
+                      {alumno.estado === 'Baja' ? (
+                        <div className="flex gap-2">
+                          <button
+                            className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded"
+                            onClick={() => handleConfirmReactivar(index)}
+                          >
+                            Reactivar
+                          </button>
+                        </div>
+                      ) : (
                         <div className="flex gap-2">
                           <button
                             className="bg-yellow-400 hover:bg-yellow-500 text-white px-3 py-1 rounded"
