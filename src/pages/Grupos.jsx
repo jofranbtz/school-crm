@@ -10,15 +10,19 @@ function Grupos() {
     { id: 1, nombre: "Alejandro", matricula: "2024001", grupo: "208", p1: "10", p2: "9", p3: "8", ord: "4" },
     { id: 2, nombre: "Eduardo", matricula: "2024002", grupo: "208", p1: "9", p2: "2", p3: "7", ord: "6" },
     { id: 3, nombre: "Guadalupe", matricula: "2024003", grupo: "208", p1: "10", p2: "10", p3: "10", ord: "10" },
+
     { id: 4, nombre: "Fernando", matricula: "2024004", grupo: "408", p1: "5", p2: "4", p3: "7", ord: "6" },
     { id: 5, nombre: "Antonio", matricula: "2024005", grupo: "408", p1: "5", p2: "3", p3: "7", ord: "8" },
     { id: 6, nombre: "Alain", matricula: "2024006", grupo: "408", p1: "8", p2: "9", p3: "10", ord: "9" },
+
     { id: 7, nombre: "Jose", matricula: "2024007", grupo: "608", p1: "7", p2: "8", p3: "9", ord: "10" },
     { id: 8, nombre: "Abdi", matricula: "2024008", grupo: "608", p1: "5", p2: "4", p3: "9", ord: "5" },
     { id: 9, nombre: "Jhosua", matricula: "2024009", grupo: "608", p1: "6", p2: "7", p3: "8", ord: "9" },
+
     { id: 10, nombre: "Itzel", matricula: "2024010", grupo: "808", p1: "7", p2: "8", p3: "5", ord: "5" },
     { id: 11, nombre: "Taylor", matricula: "2024011", grupo: "808", p1: "8", p2: "8", p3: "8", ord: "5" },
     { id: 12, nombre: "Alison", matricula: "2024012", grupo: "808", p1: "10", p2: "10", p3: "10", ord: "10" },
+
     { id: 13, nombre: "Sabrina", matricula: "2024013", grupo: "1008", p1: "10", p2: "8", p3: "9", ord: "9" },
     { id: 14, nombre: "Olivia", matricula: "2024014", grupo: "1008", p1: "10", p2: "10", p3: "10", ord: "10" },
     { id: 15, nombre: "Ariana", matricula: "2024015", grupo: "1008", p1: "8", p2: "8", p3: "8", ord: "8" },
@@ -29,30 +33,34 @@ function Grupos() {
   const [pesoActual, setPesoActual] = useState(defaultPonderaciones);
 
   const [asistencias, setAsistencias] = useState([]);
-  const [fechaSeleccionada, setFechaSeleccionada] = useState(new Date().toISOString().split('T')[0]);
+  const [fechaSeleccionada, setFechaSeleccionada] = useState(
+    new Date().toISOString().split("T")[0]
+  );
   const [asistenciaActual, setAsistenciaActual] = useState({});
 
-  // Datos de alumnos por grupo (para asistencia)
+  // Datos de alumnos por grupo
   const alumnosPorGrupo = {
-    208: alumnos.filter(a => a.grupo === "208"),
-    408: alumnos.filter(a => a.grupo === "408"),
-    608: alumnos.filter(a => a.grupo === "608"),
-    808: alumnos.filter(a => a.grupo === "808"),
-    1008: alumnos.filter(a => a.grupo === "1008"),
+    208: alumnos.filter((a) => a.grupo === "208"),
+    408: alumnos.filter((a) => a.grupo === "408"),
+    608: alumnos.filter((a) => a.grupo === "608"),
+    808: alumnos.filter((a) => a.grupo === "808"),
+    1008: alumnos.filter((a) => a.grupo === "1008"),
   };
 
   const grupos = Object.keys(alumnosPorGrupo);
   const alumnosGrupo = alumnosPorGrupo[grupoSeleccionado];
 
-  // Calcular calificación final
+  // Obtener ponderaciones
   const obtenerPonderaciones = () => {
     return ponderacionesPorGrupo[grupoSeleccionado] ?? null;
   };
 
+  // Calcular calificación final
   const calcularFinal = (a) => {
     const p1 = parseFloat(a.p1) || 0;
     const p2 = parseFloat(a.p2) || 0;
     const p3 = parseFloat(a.p3) || 0;
+
     const pesos = obtenerPonderaciones();
 
     const promedioParciales = pesos
@@ -72,9 +80,10 @@ function Grupos() {
   // Manejar cambio de calificaciones
   const handleChangeCalificacion = (id, campo, valor) => {
     let valorValidado = valor;
-    
+
     if (valor !== "") {
       const num = parseFloat(valor);
+
       if (isNaN(num)) {
         valorValidado = "";
       } else if (num < 0) {
@@ -89,6 +98,7 @@ function Grupos() {
     const nuevos = alumnos.map((a) =>
       a.id === id ? { ...a, [campo]: valorValidado } : a
     );
+
     setAlumnos(nuevos);
   };
 
@@ -99,9 +109,10 @@ function Grupos() {
       return;
     }
 
-    // Verificar si ya existe registro para esta fecha
     const yaExiste = asistencias.some(
-      (a) => a.fecha === fechaSeleccionada && a.grupo === grupoSeleccionado
+      (a) =>
+        a.fecha === fechaSeleccionada &&
+        a.grupo === grupoSeleccionado
     );
 
     if (yaExiste) {
@@ -119,15 +130,16 @@ function Grupos() {
     setAsistencias([...asistencias, registroAsistencia]);
     setAsistenciaActual({});
     setFechaSeleccionada("");
+
     alert("Asistencia registrada correctamente");
   };
 
-  // Obtener registros de asistencia para la fecha actual
+  // Obtener registros de asistencia
   const registrosFecha = asistencias.filter(
     (a) => a.grupo === grupoSeleccionado
   );
 
-  // Calcular porcentaje de asistencia por alumno
+  // Calcular asistencia
   const calcularAsistencia = (idAlumno) => {
     let presente = 0;
     let total = 0;
@@ -135,6 +147,7 @@ function Grupos() {
     registrosFecha.forEach((registro) => {
       if (registro.registros[idAlumno]) {
         total++;
+
         if (registro.registros[idAlumno] === "presente") {
           presente++;
         }
@@ -142,6 +155,7 @@ function Grupos() {
     });
 
     if (total === 0) return 0;
+
     return Math.round((presente / total) * 100);
   };
 
@@ -151,9 +165,13 @@ function Grupos() {
 
       {/* Selector de grupo */}
       <div className="mb-6 bg-white p-6 rounded-lg shadow-md border border-gray-200">
-        <label htmlFor="grupo" className="block text-sm font-medium text-gray-700 mb-2">
+        <label
+          htmlFor="grupo"
+          className="block text-sm font-medium text-gray-700 mb-2"
+        >
           Seleccionar Grupo
         </label>
+
         <select
           id="grupo"
           value={grupoSeleccionado}
@@ -184,6 +202,7 @@ function Grupos() {
         >
           Dashboard
         </button>
+
         <button
           onClick={() => setPestanaActiva("calificaciones")}
           className={`px-4 py-2 font-medium transition-colors whitespace-nowrap ${
@@ -194,6 +213,7 @@ function Grupos() {
         >
           Calificaciones
         </button>
+
         <button
           onClick={() => setPestanaActiva("asistencia")}
           className={`px-4 py-2 font-medium transition-colors whitespace-nowrap ${
@@ -204,6 +224,7 @@ function Grupos() {
         >
           Asistencia
         </button>
+
         <button
           onClick={() => setPestanaActiva("resumen")}
           className={`px-4 py-2 font-medium transition-colors whitespace-nowrap ${
@@ -216,7 +237,7 @@ function Grupos() {
         </button>
       </div>
 
-      {/* Sección Dashboard */}
+      {/* Dashboard */}
       {pestanaActiva === "dashboard" && (
         <GroupDashboard
           alumnos={alumnos}
@@ -225,10 +246,12 @@ function Grupos() {
         />
       )}
 
-      {/* Sección Calificaciones */}
+      {/* Calificaciones */}
       {pestanaActiva === "calificaciones" && (
         <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
-          <h2 className="text-xl font-bold mb-6">Ingrese Calificaciones - Grupo {grupoSeleccionado}</h2>
+          <h2 className="text-xl font-bold mb-6">
+            Ingrese Calificaciones - Grupo {grupoSeleccionado}
+          </h2>
 
           <div className="overflow-x-auto">
             <table className="w-full border-collapse">
@@ -237,81 +260,111 @@ function Grupos() {
                   <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700 border border-gray-200">
                     Alumno
                   </th>
+
                   <th className="px-4 py-2 text-center text-sm font-semibold text-gray-700 border border-gray-200">
                     Parcial 1
                   </th>
+
                   <th className="px-4 py-2 text-center text-sm font-semibold text-gray-700 border border-gray-200">
                     Parcial 2
                   </th>
+
                   <th className="px-4 py-2 text-center text-sm font-semibold text-gray-700 border border-gray-200">
                     Parcial 3
                   </th>
+
                   <th className="px-4 py-2 text-center text-sm font-semibold text-gray-700 border border-gray-200">
                     Ordinario
                   </th>
+
                   <th className="px-4 py-2 text-center text-sm font-semibold text-gray-700 border border-gray-200">
                     Final
                   </th>
                 </tr>
               </thead>
+
               <tbody>
                 {alumnosGrupo.map((alumno) => {
-                  const alumnoCompleto = alumnos.find(a => a.id === alumno.id);
-                  const final = calcularFinal(alumnoCompleto);
-                  
+                  const final = calcularFinal(alumno);
+
                   return (
                     <tr key={alumno.id} className="hover:bg-gray-50">
                       <td className="px-4 py-2 text-sm text-gray-900 border border-gray-200">
                         {alumno.nombre}
                       </td>
+
                       <td className="px-4 py-2 text-center border border-gray-200">
                         <input
                           type="number"
                           min="0"
                           max="10"
                           step="0.1"
-                          value={alumnoCompleto.p1}
-                          onChange={(e) => handleChangeCalificacion(alumno.id, "p1", e.target.value)}
+                          value={alumno.p1}
+                          onChange={(e) =>
+                            handleChangeCalificacion(
+                              alumno.id,
+                              "p1",
+                              e.target.value
+                            )
+                          }
                           className="w-16 px-2 py-1 border border-gray-300 rounded-md text-center focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          placeholder="-"
                         />
                       </td>
+
                       <td className="px-4 py-2 text-center border border-gray-200">
                         <input
                           type="number"
                           min="0"
                           max="10"
                           step="0.1"
-                          value={alumnoCompleto.p2}
-                          onChange={(e) => handleChangeCalificacion(alumno.id, "p2", e.target.value)}
+                          value={alumno.p2}
+                          onChange={(e) =>
+                            handleChangeCalificacion(
+                              alumno.id,
+                              "p2",
+                              e.target.value
+                            )
+                          }
                           className="w-16 px-2 py-1 border border-gray-300 rounded-md text-center focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          placeholder="-"
                         />
                       </td>
+
                       <td className="px-4 py-2 text-center border border-gray-200">
                         <input
                           type="number"
                           min="0"
                           max="10"
                           step="0.1"
-                          value={alumnoCompleto.p3}
-                          onChange={(e) => handleChangeCalificacion(alumno.id, "p3", e.target.value)}
+                          value={alumno.p3}
+                          onChange={(e) =>
+                            handleChangeCalificacion(
+                              alumno.id,
+                              "p3",
+                              e.target.value
+                            )
+                          }
                           className="w-16 px-2 py-1 border border-gray-300 rounded-md text-center focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          placeholder="-"
                         />
                       </td>
+
                       <td className="px-4 py-2 text-center border border-gray-200">
                         <input
                           type="number"
                           min="0"
                           max="10"
                           step="0.1"
-                          value={alumnoCompleto.ord}
-                          onChange={(e) => handleChangeCalificacion(alumno.id, "ord", e.target.value)}
+                          value={alumno.ord}
+                          onChange={(e) =>
+                            handleChangeCalificacion(
+                              alumno.id,
+                              "ord",
+                              e.target.value
+                            )
+                          }
                           className="w-16 px-2 py-1 border border-gray-300 rounded-md text-center focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          placeholder="-"
                         />
                       </td>
+
                       <td className="px-4 py-2 text-center text-sm font-semibold text-gray-900 border border-gray-200 bg-gray-50">
                         {final}
                       </td>
@@ -328,16 +381,21 @@ function Grupos() {
         </div>
       )}
 
-      {/* Sección Asistencia */}
+      {/* Asistencia */}
       {pestanaActiva === "asistencia" && (
         <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
-          <h2 className="text-xl font-bold mb-4">Registrar Asistencia - Grupo {grupoSeleccionado}</h2>
+          <h2 className="text-xl font-bold mb-4">
+            Registrar Asistencia - Grupo {grupoSeleccionado}
+          </h2>
 
-          {/* Selector de fecha */}
           <div className="mb-6">
-            <label htmlFor="fecha" className="block text-sm font-medium text-gray-700 mb-2">
+            <label
+              htmlFor="fecha"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
               Seleccionar Fecha
             </label>
+
             <input
               type="date"
               id="fecha"
@@ -347,7 +405,6 @@ function Grupos() {
             />
           </div>
 
-          {/* Tabla de asistencia */}
           <div className="overflow-x-auto">
             <table className="w-full border-collapse">
               <thead className="bg-gray-50">
@@ -355,29 +412,36 @@ function Grupos() {
                   <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700 border border-gray-200">
                     Alumno
                   </th>
+
                   <th className="px-4 py-2 text-center text-sm font-semibold text-gray-700 border border-gray-200">
                     Presente
                   </th>
+
                   <th className="px-4 py-2 text-center text-sm font-semibold text-gray-700 border border-gray-200">
                     Ausente
                   </th>
+
                   <th className="px-4 py-2 text-center text-sm font-semibold text-gray-700 border border-gray-200">
                     Justificado
                   </th>
                 </tr>
               </thead>
+
               <tbody>
                 {alumnosGrupo.map((alumno) => (
                   <tr key={alumno.id} className="hover:bg-gray-50">
                     <td className="px-4 py-2 text-sm text-gray-900 border border-gray-200">
                       {alumno.nombre}
                     </td>
+
                     <td className="px-4 py-2 text-center border border-gray-200">
                       <input
                         type="radio"
                         name={`asistencia-${alumno.id}`}
                         value="presente"
-                        checked={asistenciaActual[alumno.id] === "presente"}
+                        checked={
+                          asistenciaActual[alumno.id] === "presente"
+                        }
                         onChange={(e) =>
                           setAsistenciaActual({
                             ...asistenciaActual,
@@ -387,12 +451,15 @@ function Grupos() {
                         className="cursor-pointer"
                       />
                     </td>
+
                     <td className="px-4 py-2 text-center border border-gray-200">
                       <input
                         type="radio"
                         name={`asistencia-${alumno.id}`}
                         value="ausente"
-                        checked={asistenciaActual[alumno.id] === "ausente"}
+                        checked={
+                          asistenciaActual[alumno.id] === "ausente"
+                        }
                         onChange={(e) =>
                           setAsistenciaActual({
                             ...asistenciaActual,
@@ -402,12 +469,15 @@ function Grupos() {
                         className="cursor-pointer"
                       />
                     </td>
+
                     <td className="px-4 py-2 text-center border border-gray-200">
                       <input
                         type="radio"
                         name={`asistencia-${alumno.id}`}
                         value="justificado"
-                        checked={asistenciaActual[alumno.id] === "justificado"}
+                        checked={
+                          asistenciaActual[alumno.id] === "justificado"
+                        }
                         onChange={(e) =>
                           setAsistenciaActual({
                             ...asistenciaActual,
@@ -423,7 +493,6 @@ function Grupos() {
             </table>
           </div>
 
-          {/* Botón registrar */}
           <div className="mt-6">
             <button
               onClick={registrarAsistencia}
@@ -435,13 +504,17 @@ function Grupos() {
         </div>
       )}
 
-      {/* Sección Resumen */}
+      {/* Resumen */}
       {pestanaActiva === "resumen" && (
         <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
-          <h2 className="text-xl font-bold mb-4">Resumen de Asistencia - Grupo {grupoSeleccionado}</h2>
+          <h2 className="text-xl font-bold mb-4">
+            Resumen de Asistencia - Grupo {grupoSeleccionado}
+          </h2>
 
           {registrosFecha.length === 0 ? (
-            <p className="text-gray-600">No hay registros de asistencia para este grupo</p>
+            <p className="text-gray-600">
+              No hay registros de asistencia para este grupo
+            </p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full border-collapse">
@@ -450,30 +523,48 @@ function Grupos() {
                     <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700 border border-gray-200">
                       Alumno
                     </th>
+
                     <th className="px-4 py-2 text-center text-sm font-semibold text-gray-700 border border-gray-200">
                       % Asistencia
                     </th>
+
                     <th className="px-4 py-2 text-center text-sm font-semibold text-gray-700 border border-gray-200">
                       Estado
                     </th>
                   </tr>
                 </thead>
+
                 <tbody>
                   {alumnosGrupo.map((alumno) => {
                     const porcentaje = calcularAsistencia(alumno.id);
-                    const estado = porcentaje >= 80 ? "Bueno" : porcentaje >= 60 ? "Regular" : "Bajo";
+
+                    const estado =
+                      porcentaje >= 80
+                        ? "Bueno"
+                        : porcentaje >= 60
+                        ? "Regular"
+                        : "Bajo";
+
                     const colorEstado =
-                      porcentaje >= 80 ? "text-green-600" : porcentaje >= 60 ? "text-yellow-600" : "text-red-600";
+                      porcentaje >= 80
+                        ? "text-green-600"
+                        : porcentaje >= 60
+                        ? "text-yellow-600"
+                        : "text-red-600";
 
                     return (
                       <tr key={alumno.id} className="hover:bg-gray-50">
                         <td className="px-4 py-2 text-sm text-gray-900 border border-gray-200">
                           {alumno.nombre}
                         </td>
+
                         <td className="px-4 py-2 text-center text-sm font-bold border border-gray-200">
                           {porcentaje}%
                         </td>
-                        <td className={`px-4 py-2 text-center text-sm font-semibold border border-gray-200 ${colorEstado}`}>
+
+                        <td
+                          className={`px-4 py-2 text-center text-sm font-semibold border border-gray-200 ${colorEstado}`}
+                        >
                           {estado}
                         </td>
                       </tr>
@@ -486,6 +577,7 @@ function Grupos() {
         </div>
       )}
     </section>
-  )
+  );
 }
+
 export default Grupos;

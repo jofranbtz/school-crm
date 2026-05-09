@@ -15,15 +15,9 @@ import Materias from './pages/Materias.jsx'
 
 function App() {
   useEffect(() => {
-    console.log("usuarios de JSONPlaceholder sin errores");
-
     client.get("/users")
-      .then((res) => {
-        console.log("Usuarios:", res.data);
-      })
-      .catch((err) => {
-        console.error("Error:", err);
-      });
+      .then((res) => console.log(res.data))
+      .catch((err) => console.error(err));
   }, []);
 
   return (
