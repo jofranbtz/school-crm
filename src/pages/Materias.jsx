@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useApp } from "../context/AppContext";
 
 function Materias() {
-  const { materias, setMaterias } = useApp();
+  const { materias, setMaterias, grupos, setGrupos, generarId } = useApp();
 
   const [showForm, setShowForm] = useState(false);
   const [editando, setEditando] = useState(null);
@@ -28,7 +28,7 @@ function Materias() {
       setMaterias(nuevas);
       setEditando(null);
     } else {
-      setMaterias([...materias, { ...form, id: Date.now() }]);
+      setMaterias([...materias, { ...form, id: generarId(materias) }]);
     }
 
     setForm({ clave: "", nombre: "", semestre: "" });
@@ -36,7 +36,27 @@ function Materias() {
   };
 
   const eliminar = (id) => {
+
+    const tieneGrupoConAlumnos = grupos.some(
+      g => g.materiaId === id && g.alumnos.length > 0
+    );
+
+    if (tieneGrupoConAlumnos) {
+      alert("No puedes eliminar esta materia porque tiene grupos asociados");
+      return;
+    }
+
+    const confirmar = window.confirm(
+      "¿Seguro que deseas eliminar esta materia?"
+    );
+
+    if (!confirmar) return;
+
     setMaterias(materias.filter((m) => m.id !== id));
+
+    setGrupos(
+      grupos.filter(g => g.materiaId !== id)
+    );
   };
 
   const editar = (m) => {

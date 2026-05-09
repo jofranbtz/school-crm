@@ -23,8 +23,27 @@ export function AppProvider({ children }) {
     localStorage.setItem("grupos", JSON.stringify(grupos));
   }, [grupos]);
 
+  const generarId = (lista) => {
+
+    let nuevoId;
+
+    do {
+      nuevoId = Math.floor(10000 + Math.random() * 90000);
+    } while (lista.some(item => item.id === nuevoId));
+
+    return nuevoId;
+  };
+
   return (
-    <AppContext.Provider value={{ materias, setMaterias, grupos, setGrupos }}>
+    <AppContext.Provider 
+      value={{ 
+        materias, 
+        setMaterias, 
+        grupos, 
+        setGrupos,
+        generarId
+      }}
+    >
       {children}
     </AppContext.Provider>
   );

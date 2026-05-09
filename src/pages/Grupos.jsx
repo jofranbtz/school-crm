@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useApp } from "../context/AppContext";
 
 function Grupos() {
-  const { grupos, setGrupos, materias } = useApp();
+  const { grupos, setGrupos, materias, generarId } = useApp();
 
   const [grupoSeleccionado, setGrupoSeleccionado] = useState(null);
   const grupoActual = grupos.find(g => g.id === grupoSeleccionado?.id);
@@ -16,25 +16,56 @@ function Grupos() {
   const [showForm, setShowForm] = useState(false);
   const [editando, setEditando] = useState(null);
 
+ 
   const [form, setForm] = useState({
     nombre: "",
-    materia: "",
+    materiaId: "",
     ciclo: "",
   });
 
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    if (!form.nombre || !form.materia || !form.ciclo) return;
-
-    if (editando) {
-      setGrupos(grupos.map(g => g.id === editando ? { ...form, id: editando } : g));
-      setEditando(null);
-    } else {
-      setGrupos([...grupos, { ...form, id: Date.now(), alumnos: [] }]);
+    if (!form.nombre || !form.materiaId || !form.ciclo) {
+      alert("Todos los campos son obligatorios");
+      return;
     }
 
-    setForm({ nombre:"", materia:"", ciclo:"" });
+
+    if (editando) {
+
+      setGrupos(
+        grupos.map(g =>
+          g.id === editando
+            ? {
+                ...g,
+                ...form,
+                id: editando
+              }
+            : g
+        )
+      );
+
+      setEditando(null);
+
+    } else {
+
+      setGrupos([
+        ...grupos,
+        {
+          ...form,
+          id: generarId(grupos),
+          alumnos: []
+        }
+      ]);
+    }
+
+    setForm({
+      nombre:"",
+      materiaId:"",
+      ciclo:""
+    });
+
     setShowForm(false);
   };
 
@@ -95,7 +126,11 @@ function Grupos() {
                 <tr key={g.id}>
                   <td>{g.id}</td>                  
                   <td>{g.nombre}</td>
-                  <td>{g.materia}</td>
+                  <td>
+                    {
+                      materias.find(m => m.id === g.materiaId)?.nombre
+                    }
+                  </td>
                   <td>{g.ciclo}</td>
                   <td>
                     <button onClick={()=>setGrupoSeleccionado(g)}>👁️</button>
@@ -116,10 +151,28 @@ function Grupos() {
 
               <input placeholder="Grupo" value={form.nombre} onChange={(e)=>setForm({...form,nombre:e.target.value})} className="w-full p-2 bg-white text-black rounded"/>
 
-              <select value={form.materia} onChange={(e)=>setForm({...form,materia:e.target.value})} className="w-full p-2 bg-white text-black rounded">
+              <select
+                value={form.materiaId}
+                onChange={(e) => {
+
+                  const materiaSeleccionada = materias.find(
+                    m => m.id === Number(e.target.value)
+                  );
+
+                  setForm({
+                    ...form,
+                    materiaId: Number(e.target.value)                    
+                  });
+
+                }}
+                className="w-full p-2 bg-blue-500 text-white rounded"
+              >
                 <option value="">Selecciona materia</option>
+
                 {materias.map(m => (
-                  <option key={m.id}>{m.nombre}</option>
+                  <option key={m.id} value={m.id}>
+                    {m.nombre}
+                  </option>
                 ))}
               </select>
 
