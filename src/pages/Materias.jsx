@@ -15,24 +15,36 @@ function Materias() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    console.log("=== HANDLE SUBMIT ===");
+    console.log("editando actual:", editando);
+    console.log("form actual:", form);
+    console.log("materias actuales:", materias);
 
     if (!form.clave || !form.nombre || !form.semestre) {
       alert("Todos los campos son obligatorios");
       return;
     }
 
-    if (editando !== null) {
-      const nuevas = materias.map((m) =>
-        m.id === editando ? { ...form, id: editando } : m
-      );
+    if (editando !== null && editando !== undefined) {
+      console.log("Entrando en modo EDICIÓN");
+      console.log("Buscando materia con id:", editando);
+      
+      const nuevas = materias.map((m) => {
+        console.log(`Comparando ${m.id} (${typeof m.id}) con ${editando} (${typeof editando})`);
+        return m.id === editando ? { ...form, id: editando } : m;
+      });
+      
+      console.log("Nuevo array de materias:", nuevas);
       setMaterias(nuevas);
       setEditando(null);
+      setShowForm(false);
+      setForm({ clave: "", nombre: "", semestre: "" });
     } else {
+      console.log("Entrando en modo CREACIÓN");
       setMaterias([...materias, { ...form, id: generarId(materias) }]);
+      setForm({ clave: "", nombre: "", semestre: "" });
+      setShowForm(false);
     }
-
-    setForm({ clave: "", nombre: "", semestre: "" });
-    setShowForm(false);
   };
 
   const eliminar = (id) => {
@@ -60,9 +72,21 @@ function Materias() {
   };
 
   const editar = (m) => {
-    setForm(m);
+    console.log("=== EDITANDO MATERIA ===");
+    console.log("Materia original:", m);
+    console.log("ID de la materia a editar:", m.id);
+    console.log("Tipo del ID:", typeof m.id);
+    
+    setForm({
+      clave: m.clave,
+      nombre: m.nombre,
+      semestre: m.semestre,
+    });
     setEditando(m.id);
     setShowForm(true);
+    
+    console.log("editando establecido a:", m.id);
+    console.log("Form establecido a:", { clave: m.clave, nombre: m.nombre, semestre: m.semestre });
   };
 
   return (
@@ -134,7 +158,7 @@ function Materias() {
               </select>
 
               <div className="flex gap-2">
-                <button className="bg-green-500 px-4 py-2">Guardar</button>
+                <button type="submit" className="bg-green-500 px-4 py-2"> Guardar </button>
                 <button type="button" onClick={()=>setShowForm(false)} className="bg-red-500 px-4 py-2">Cancelar</button>
               </div>
             </form>
