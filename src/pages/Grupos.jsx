@@ -1,33 +1,30 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import GroupDashboard from "../components/GroupDashboard";
+import { useApp } from "../context/AppContext";
 
 function Grupos() {
-  const [grupoSeleccionado, setGrupoSeleccionado] = useState("208");
+  
+  const {
+    grupos,
+    setGrupos,
+    materias,
+    generarId,
+    alumnos,
+    setAlumnos
+  } = useApp();
+
+  const [grupoSeleccionado, setGrupoSeleccionado] = useState("");
+
+  useEffect(() => {
+    if (grupos.length > 0 && !grupoSeleccionado) {
+      setGrupoSeleccionado(grupos[0].nombre.replace("Grupo ", ""));
+    }
+  }, [grupos, grupoSeleccionado]);
+
   const [pestanaActiva, setPestanaActiva] = useState("asistencia");
+  const [grupoVisualizado, setGrupoVisualizado] = useState(null);
 
   // Datos de alumnos con calificaciones
-  const [alumnos, setAlumnos] = useState([
-    { id: 1, nombre: "Alejandro", matricula: "2024001", grupo: "208", p1: "10", p2: "9", p3: "8", ord: "4" },
-    { id: 2, nombre: "Eduardo", matricula: "2024002", grupo: "208", p1: "9", p2: "2", p3: "7", ord: "6" },
-    { id: 3, nombre: "Guadalupe", matricula: "2024003", grupo: "208", p1: "10", p2: "10", p3: "10", ord: "10" },
-
-    { id: 4, nombre: "Fernando", matricula: "2024004", grupo: "408", p1: "5", p2: "4", p3: "7", ord: "6" },
-    { id: 5, nombre: "Antonio", matricula: "2024005", grupo: "408", p1: "5", p2: "3", p3: "7", ord: "8" },
-    { id: 6, nombre: "Alain", matricula: "2024006", grupo: "408", p1: "8", p2: "9", p3: "10", ord: "9" },
-
-    { id: 7, nombre: "Jose", matricula: "2024007", grupo: "608", p1: "7", p2: "8", p3: "9", ord: "10" },
-    { id: 8, nombre: "Abdi", matricula: "2024008", grupo: "608", p1: "5", p2: "4", p3: "9", ord: "5" },
-    { id: 9, nombre: "Jhosua", matricula: "2024009", grupo: "608", p1: "6", p2: "7", p3: "8", ord: "9" },
-
-    { id: 10, nombre: "Itzel", matricula: "2024010", grupo: "808", p1: "7", p2: "8", p3: "5", ord: "5" },
-    { id: 11, nombre: "Taylor", matricula: "2024011", grupo: "808", p1: "8", p2: "8", p3: "8", ord: "5" },
-    { id: 12, nombre: "Alison", matricula: "2024012", grupo: "808", p1: "10", p2: "10", p3: "10", ord: "10" },
-
-    { id: 13, nombre: "Sabrina", matricula: "2024013", grupo: "1008", p1: "10", p2: "8", p3: "9", ord: "9" },
-    { id: 14, nombre: "Olivia", matricula: "2024014", grupo: "1008", p1: "10", p2: "10", p3: "10", ord: "10" },
-    { id: 15, nombre: "Ariana", matricula: "2024015", grupo: "1008", p1: "8", p2: "8", p3: "8", ord: "8" },
-  ]);
-
   const [ponderacionesPorGrupo, setPonderacionesPorGrupo] = useState({});
   const defaultPonderaciones = { p1: 33, p2: 33, p3: 34 };
   const [pesoActual, setPesoActual] = useState(defaultPonderaciones);
@@ -37,6 +34,14 @@ function Grupos() {
     new Date().toISOString().split("T")[0]
   );
   const [asistenciaActual, setAsistenciaActual] = useState({});
+  const [showForm, setShowForm] = useState(false);
+  const [editando, setEditando] = useState(null);
+
+  const [form, setForm] = useState({
+    nombre: "",
+    materiaId: "",
+    ciclo: "",
+  });
 
   // Datos de alumnos por grupo
   const alumnosPorGrupo = {
@@ -47,8 +52,14 @@ function Grupos() {
     1008: alumnos.filter((a) => a.grupo === "1008"),
   };
 
-  const grupos = Object.keys(alumnosPorGrupo);
-  const alumnosGrupo = alumnosPorGrupo[grupoSeleccionado];
+  const listaGrupos = grupos.map((g) => g.nombre);
+  const grupoActual = grupos.find(
+    (g) => g.nombre === grupoSeleccionado
+  );
+
+  const alumnosGrupo = (alumnos ?? []).filter(
+    (a) => Array.isArray(a.grupos) && a.grupos.includes(grupoSeleccionado)
+  );
 
   // Obtener ponderaciones
   const obtenerPonderaciones = () => {
@@ -159,9 +170,73 @@ function Grupos() {
     return Math.round((presente / total) * 100);
   };
 
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    if (!form.nombre || !form.materiaId || !form.ciclo) {
+      alert("Todos los campos son obligatorios");
+      return;
+    }
+
+    if (editando) {
+      setGrupos(
+        grupos.map(g =>
+          g.id === editando
+            ? {
+                ...g,
+                ...form,
+                id: editando
+              }
+            : g
+        )
+      );
+
+      setEditando(null);
+
+    } else {
+
+      setGrupos([
+        ...grupos,
+        {
+          ...form,
+          id: generarId(grupos),
+          alumnos: []
+        }
+      ]);
+    }
+
+    setForm({
+      nombre:"",
+      materiaId:"",
+      ciclo:""
+    });
+
+    setShowForm(false);
+  };
+
+  const eliminar = (id) => {
+    setGrupos(grupos.filter(g => g.id !== id));
+  };
+
+  const editar = (g) => {
+    setForm(g);
+    setEditando(g.id);
+    setShowForm(true);
+  };
+
+  const visualizarGrupo = (grupo) => {
+    setGrupoVisualizado(grupo);
+  };
+
   return (
     <section className="p-6">
       <h1 className="text-2xl font-bold mb-6">Grupos</h1>
+      <button
+        onClick={() => setShowForm(true)}
+        className="bg-blue-500 text-white w-12 h-12 rounded-full text-2xl mb-6"
+      >
+        +
+      </button>     
 
       {/* Selector de grupo */}
       <div className="mb-6 bg-white p-6 rounded-lg shadow-md border border-gray-200">
@@ -182,7 +257,7 @@ function Grupos() {
           }}
           className="w-full md:w-1/3 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
-          {grupos.map((g) => (
+          {listaGrupos.map((g) => (
             <option key={g} value={g}>
               Grupo {g}
             </option>
@@ -190,8 +265,11 @@ function Grupos() {
         </select>
       </div>
 
+      
+
       {/* Pestañas */}
-      <div className="mb-6 flex gap-2 border-b border-gray-200 overflow-x-auto">
+      <div className="mb-6 flex items-center border-b border-gray-200 overflow-x-auto">
+
         <button
           onClick={() => setPestanaActiva("dashboard")}
           className={`px-4 py-2 font-medium transition-colors whitespace-nowrap ${
@@ -235,6 +313,21 @@ function Grupos() {
         >
           Resumen
         </button>
+
+        {/* Empuja Asignaciones hacia la derecha */}
+        <div className="ml-auto">
+          <button
+            onClick={() => setPestanaActiva("asignaciones")}
+            className={`px-4 py-2 font-medium transition-colors whitespace-nowrap ${
+              pestanaActiva === "asignaciones"
+                ? "border-b-2 border-blue-600 text-blue-600"
+                : "text-gray-600 hover:text-gray-900"
+            }`}
+          >
+            Asignaciones
+          </button>
+        </div>
+
       </div>
 
       {/* Dashboard */}
@@ -504,6 +597,245 @@ function Grupos() {
         </div>
       )}
 
+      {/* Asignaciones */}
+      {pestanaActiva === "asignaciones" && (
+        <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
+
+          <h2 className="text-xl font-bold mb-6">
+            Asignaciones
+          </h2>
+
+          {grupos.length === 0 ? (
+            <p className="text-gray-600">
+              No hay grupos registrados
+            </p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse">
+
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-4 py-2 border border-gray-200">
+                      Nombre de la materia
+                    </th>
+
+                    <th className="px-4 py-2 border border-gray-200">
+                      ID
+                    </th>
+
+                    <th className="px-4 py-2 border border-gray-200">
+                      Ciclo escolar
+                    </th>
+
+                    <th className="px-4 py-2 border border-gray-200">
+                      Acciones
+                    </th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {grupos.map((g) => {
+
+                    const materia = materias.find((m) => String(m.id) === String(g.materiaId));
+
+                    return (
+                      <tr key={g.id} className="hover:bg-gray-50">
+
+                        <td className="px-4 py-2 border border-gray-200 text-center">
+                          {materia ? materia.nombre : "Sin materia"}
+                        </td>
+
+                        <td className="px-4 py-2 border border-gray-200 text-center">
+                          {g.id}
+                        </td>
+
+                        <td className="px-4 py-2 border border-gray-200 text-center">
+                          {g.ciclo}
+                        </td>
+
+                        <td className="px-4 py-2 border border-gray-200 text-center space-x-2">
+
+                          <button
+                            onClick={() => visualizarGrupo(g)}
+                            className="bg-blue-500 text-white px-3 py-1 rounded"
+                          >
+                            👁️
+                          </button>
+
+                          <button
+                            onClick={() => editar(g)}
+                            className="bg-yellow-500 text-white px-3 py-1 rounded"
+                          >
+                            ✏️
+                          </button>
+
+                          <button
+                            onClick={() => eliminar(g.id)}
+                            className="bg-red-500 text-white px-3 py-1 rounded"
+                          >
+                            🗑️
+                          </button>
+
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          
+          {/* MODAL VISUALIZAR */}
+          {grupoVisualizado && (
+            <div className="mt-8">
+              <h3 className="text-lg font-bold mb-4">
+                Alumnos asignados al grupo {grupoVisualizado.nombre}
+              </h3>
+
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-4 py-2 border border-gray-200">
+                        Nombre
+                      </th>
+                      <th className="px-4 py-2 border border-gray-200">
+                        Matrícula
+                      </th>
+                      <th className="px-4 py-2 border border-gray-200">
+                        Acción
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {alumnos
+                      .filter((a) => a.grupos?.includes(grupoVisualizado.nombre))
+                      .map((alumno) => {
+                        console.log("Alumno completo:", alumno); // Para debug
+                        return (
+                          <tr key={alumno.id || alumno.matricula} className="hover:bg-gray-50">
+                            <td className="px-4 py-2 border border-gray-200">
+                              {alumno.nombre}
+                            </td>
+                          <td className="px-4 py-2 border border-gray-200 text-center">
+                            {alumno.matricula}
+                          </td>
+                          <td className="px-4 py-2 border border-gray-200 text-center">
+                            <button
+                              className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
+                              onClick={() => {
+                                // Verificar que el alumno tenga un ID válido
+                                if (!alumno.id && !alumno.matricula) {
+                                  console.error("El alumno no tiene identificador válido", alumno);
+                                  alert("Error: No se puede identificar al alumno");
+                                  return;
+                                }
+
+                                // Usar el ID o la matrícula como identificador
+                                const alumnoId = alumno.id || alumno.matricula;
+                                
+                                console.log("Grupo a quitar:", grupoVisualizado.nombre);
+                                console.log("Grupos actuales del alumno:", alumno.grupos);
+                                console.log("ID del alumno:", alumnoId);
+
+                                // Crear una copia del estado actual
+                                const alumnosActualizados = alumnos.map(a => {
+                                  // Comparar usando el campo disponible (id o matricula)
+                                  const aId = a.id || a.matricula;
+                                  
+                                  if (aId === alumnoId) {
+                                    // Filtrar SOLO el grupo actual
+                                    const gruposActualizados = (a.grupos || []).filter(
+                                      g => g !== grupoVisualizado.nombre
+                                    );
+                                    
+                                    console.log("Grupos después de quitar:", gruposActualizados);
+                                    
+                                    return {
+                                      ...a,
+                                      grupos: gruposActualizados
+                                    };
+                                  }
+                                  return a;
+                                });
+                                
+                                // Actualizar el estado
+                                setAlumnos(alumnosActualizados);
+                                
+                                // Mostrar mensaje de confirmación
+                                console.log(`Alumno ${alumno.nombre} removido del grupo ${grupoVisualizado.nombre}`);
+                                
+                                // Opcional: Mostrar un pequeño mensaje al usuario
+                                alert(`Alumno ${alumno.nombre} removido del grupo`);
+                              }}
+                            >
+                              Quitar
+                            </button>
+                          </td>
+                        </tr>
+                        );
+                })}  
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="mt-4">
+                <button
+                  className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+                  onClick={() => {
+                    const matricula = prompt("Ingresa la matrícula del alumno a agregar");
+                    if (!matricula) return;
+
+                    setAlumnos(prev => {
+                      const existe = prev.find(a => a.matricula === matricula);
+
+                      if (!existe) {
+                        alert("No se encontró un alumno con esa matrícula");
+                        return prev;
+                      }
+
+                      // IMPORTANTE: Usar grupoVisualizado.nombre en lugar de grupoSeleccionado
+                      const nombreGrupo = grupoVisualizado.nombre;
+                      
+                      // Verificar si ya está asignado al grupo
+                      if (existe.grupos?.includes(nombreGrupo)) {
+                        alert(`El alumno ${existe.nombre} ya está asignado al grupo ${nombreGrupo}`);
+                        return prev;
+                      }
+
+                      // Agregar el grupo al alumno
+                      const alumnosActualizados = prev.map(a =>
+                        a.matricula === matricula
+                          ? {
+                              ...a,
+                              grupos: a.grupos
+                                ? [...new Set([...a.grupos, nombreGrupo])]
+                                : [nombreGrupo]
+                            }
+                          : a
+                      );
+                      
+                      // Mostrar mensaje de éxito
+                      alert(`Alumno ${existe.nombre} agregado al grupo ${nombreGrupo}`);
+                      
+                      return alumnosActualizados;
+                    });
+                  }}
+                >
+                  Añadir alumno
+                </button>
+              </div>
+            </div>
+          )}
+
+
+
+
+
+        </div>
+      )}
+
       {/* Resumen */}
       {pestanaActiva === "resumen" && (
         <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
@@ -576,6 +908,94 @@ function Grupos() {
           )}
         </div>
       )}
+
+
+
+      {/* MODAL FORMULARIO */}
+      {showForm && (
+        <div className="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-50">
+          <div className="bg-gray-900 p-6 rounded text-white w-96">
+
+            <h2 className="text-xl font-bold mb-4 text-center">
+              {editando ? "Editar Grupo" : "Nuevo Grupo"}
+            </h2>
+
+            <form onSubmit={handleSubmit} className="space-y-3">
+
+              <input
+                placeholder="Nombre del grupo"
+                value={form.nombre}
+                onChange={(e)=>
+                  setForm({
+                    ...form,
+                    nombre:e.target.value
+                  })
+                }
+                className="w-full p-2 bg-white text-black rounded"
+              />
+
+              <select
+                value={form.materiaId}
+                onChange={(e)=>
+                  setForm({
+                    ...form,
+                    materiaId: e.target.value
+                  })
+                }
+                className="w-full p-2 bg-blue-500 text-white rounded"
+              >
+                <option value="">Selecciona materia</option>
+
+                {materias.map(m => (
+                  <option key={m.id} value={m.id}>
+                    {m.nombre}
+                  </option>
+                ))}
+              </select>
+
+              <input
+                placeholder="Ciclo"
+                value={form.ciclo}
+                onChange={(e)=>
+                  setForm({
+                    ...form,
+                    ciclo:e.target.value
+                  })
+                }
+                className="w-full p-2 bg-white text-black rounded"
+              />
+
+              <div className="flex gap-2">
+
+                <button className="bg-green-500 px-4 py-2 rounded w-full">
+                  Guardar
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowForm(false);
+                    setEditando(null);
+
+                    setForm({
+                      nombre:"",
+                      materiaId:"",
+                      ciclo:""
+                    });
+                  }}
+                  className="bg-red-500 px-4 py-2 rounded w-full"
+                >
+                  Cancelar
+                </button>
+
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+
+
     </section>
   );
 }

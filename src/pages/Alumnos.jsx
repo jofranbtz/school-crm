@@ -1,14 +1,11 @@
 import React, { useState, useMemo } from 'react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { useApp } from "../context/AppContext";
 
 function Alumnos() {
   // Datos iniciales de alumnos
-  const [alumnos, setAlumnos] = useState([
-    { nombre: 'Juan', apellido: 'Pérez', matricula: '2021001', carrera: 'Ingeniería en Sistemas', semestre: '8', grupo: 'A', estado: 'Activo' },
-    { nombre: 'María', apellido: 'García', matricula: '2021002', carrera: 'Ingeniería Civil', semestre: '6', grupo: 'B', estado: 'Activo' },
-    { nombre: 'Carlos', apellido: 'López', matricula: '2021003', carrera: 'Medicina', semestre: '10', grupo: 'C', estado: 'Inactivo' },
-  ]);
+  const { alumnos, setAlumnos } = useApp();
 
   // Estado del formulario
   const [formData, setFormData] = useState({
