@@ -41,6 +41,7 @@ function Grupos() {
     nombre: "",
     materiaId: "",
     ciclo: "",
+    docente: "",
   });
 
   // Datos de alumnos por grupo
@@ -173,7 +174,7 @@ function Grupos() {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    if (!form.nombre || !form.materiaId || !form.ciclo) {
+    if (!form.nombre || !form.materiaId || !form.ciclo || !form.docente) {
       alert("Todos los campos son obligatorios");
       return;
     }
@@ -208,7 +209,8 @@ function Grupos() {
     setForm({
       nombre:"",
       materiaId:"",
-      ciclo:""
+      ciclo:"",
+      docente:""
     });
 
     setShowForm(false);
@@ -615,18 +617,23 @@ function Grupos() {
 
                 <thead className="bg-gray-50">
                   <tr>
+                    
+                    <th className="px-4 py-2 border border-gray-200">
+                      ID
+                    </th>
+                    
                     <th className="px-4 py-2 border border-gray-200">
                       Nombre de la materia
                     </th>
 
                     <th className="px-4 py-2 border border-gray-200">
-                      ID
+                      Docente responsable
                     </th>
-
+                    
                     <th className="px-4 py-2 border border-gray-200">
                       Ciclo escolar
                     </th>
-
+                  
                     <th className="px-4 py-2 border border-gray-200">
                       Acciones
                     </th>
@@ -642,17 +649,21 @@ function Grupos() {
                       <tr key={g.id} className="hover:bg-gray-50">
 
                         <td className="px-4 py-2 border border-gray-200 text-center">
+                          {g.id}
+                        </td>
+                        
+                        <td className="px-4 py-2 border border-gray-200 text-center">
                           {materia ? materia.nombre : "Sin materia"}
                         </td>
 
                         <td className="px-4 py-2 border border-gray-200 text-center">
-                          {g.id}
-                        </td>
+                          {g.docente}
+                        </td>                        
 
                         <td className="px-4 py-2 border border-gray-200 text-center">
                           {g.ciclo}
                         </td>
-
+                      
                         <td className="px-4 py-2 border border-gray-200 text-center space-x-2">
 
                           <button
@@ -965,6 +976,18 @@ function Grupos() {
                 className="w-full p-2 bg-white text-black rounded"
               />
 
+              <input
+                placeholder="Docente responsable"
+                value={form.docente}
+                onChange={(e)=>
+                  setForm({
+                    ...form,
+                    docente:e.target.value
+                  })
+                }
+                className="w-full p-2 bg-white text-black rounded"
+              />
+
               <div className="flex gap-2">
 
                 <button className="bg-green-500 px-4 py-2 rounded w-full">
@@ -980,7 +1003,8 @@ function Grupos() {
                     setForm({
                       nombre:"",
                       materiaId:"",
-                      ciclo:""
+                      ciclo:"",
+                      docente:""
                     });
                   }}
                   className="bg-red-500 px-4 py-2 rounded w-full"
