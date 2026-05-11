@@ -13,6 +13,58 @@ function Materias() {
     semestre: "",
   });
 
+
+
+  const [filtro, setFiltro] = useState("PRIMERO_DECIMO");
+
+  const ordenSemestres = [
+    "Primero",
+    "Segundo",
+    "Tercero",
+    "Cuarto",
+    "Quinto",
+    "Sexto",
+    "Séptimo",
+    "Octavo",
+    "Noveno",
+    "Décimo",
+  ];
+
+  const materiasOrdenadas = [...materias];
+
+  if (filtro === "PRIMERO_DECIMO") {
+    materiasOrdenadas.sort(
+      (a, b) =>
+        ordenSemestres.indexOf(a.semestre) -
+        ordenSemestres.indexOf(b.semestre)
+    );
+  }
+
+  if (filtro === "DECIMO_PRIMERO") {
+    materiasOrdenadas.sort(
+      (a, b) =>
+        ordenSemestres.indexOf(b.semestre) -
+        ordenSemestres.indexOf(a.semestre)
+    );
+  }
+
+  if (filtro === "NOMBRE_AZ") {
+    materiasOrdenadas.sort((a, b) =>
+      a.nombre.localeCompare(b.nombre)
+    );
+  }
+
+  if (filtro === "NOMBRE_ZA") {
+    materiasOrdenadas.sort((a, b) =>
+      b.nombre.localeCompare(a.nombre)
+    );
+  }
+
+
+
+
+
+
   const handleSubmit = (e) => {
     e.preventDefault();
     console.log("=== HANDLE SUBMIT ===");
@@ -92,38 +144,95 @@ function Materias() {
   return (
     <div className="p-6 max-w-5xl mx-auto">
 
-      <div className="text-center mb-6">
-        <h1 className="text-3xl font-bold mb-4">Materias</h1>
-        <button onClick={() => setShowForm(true)}
-          className="bg-blue-500 text-white w-12 h-12 rounded-full text-2xl">
-          +
-        </button>
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold mb-6 text-center">
+          Materias
+        </h1>
+
+        <div className="flex justify-between items-center">
+
+          <div className="flex items-center gap-3">
+
+            <label className="font-semibold">
+              Mostrar por:
+            </label>
+
+            <select
+              value={filtro}
+              onChange={(e) => setFiltro(e.target.value)}
+              className="border border-gray-300 rounded px-3 py-2"
+            >
+              <option value="PRIMERO_DECIMO">
+                PRIMER SEMESTRE A DÉCIMO
+              </option>
+
+              <option value="DECIMO_PRIMERO">
+                DÉCIMO A PRIMERO
+              </option>
+
+              <option value="NOMBRE_AZ">
+                NOMBRE A - Z
+              </option>
+
+              <option value="NOMBRE_ZA">
+                NOMBRE Z - A
+              </option>
+            </select>
+
+          </div>
+
+          <button
+            onClick={() => setShowForm(true)}
+            className="bg-blue-500 text-white w-12 h-12 rounded-full text-2xl"
+          >
+            +
+          </button>
+
+        </div>
       </div>
 
       <div className="bg-white shadow-lg rounded-lg overflow-hidden">
         {materias.length === 0 ? (
           <p className="p-6 text-center">No hay materias</p>
         ) : (
-          <table className="w-full text-center">
+          <table className="w-full text-center border-collapse">
             <thead className="bg-blue-500 text-white">
               <tr>
-                <th>ID</th>
-                <th>Clave</th>
-                <th>Nombre</th>
-                <th>Semestre</th>
-                <th>Acciones</th>
+                <th className="px-4 py-2 border border-gray-200">
+                  ID
+                </th>
+
+                <th className="px-4 py-2 border border-gray-200">
+                  Clave
+                </th>
+
+                <th className="px-4 py-2 border border-gray-200">
+                  Nombre
+                </th>
+
+                <th className="px-4 py-2 border border-gray-200">
+                  Semestre
+                </th>
+
+                <th className="px-4 py-2 border border-gray-200">
+                  Acciones
+                </th>
               </tr>
             </thead>
             <tbody>
-              {materias.map((m) => (
+              {materiasOrdenadas.map((m) => (
                 <tr key={m.id}>
-                  <td>{m.id}</td>                  
-                  <td>{m.clave}</td>
-                  <td>{m.nombre}</td>
-                  <td>{m.semestre}</td>
-                  <td className="space-x-2">
-                    <button onClick={() => editar(m)}>✏️</button>
-                    <button onClick={() => eliminar(m.id)}>🗑️</button>
+                  <td className="px-4 py-2 border border-gray-200">{m.id}</td>                  
+                  <td className="px-4 py-2 border border-gray-200">{m.clave}</td>
+                  <td className="px-4 py-2 border border-gray-200">{m.nombre}</td>
+                  <td className="px-4 py-2 border border-gray-200">{m.semestre}</td>
+                  <td className="px-4 py-2 border border-gray-200">
+                    <button onClick={() => editar(m)} className="bg-blue-500 text-white p-2 rounded">
+                      ✏️
+                    </button>
+                    <button onClick={() => eliminar(m.id)} className="bg-red-500 text-white p-2 rounded">
+                      🗑️
+                    </button>
                   </td>
                 </tr>
               ))}
