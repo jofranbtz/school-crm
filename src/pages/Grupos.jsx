@@ -720,73 +720,126 @@ function Grupos() {
                     </tr>
                   </thead>
                   <tbody>
-                    {alumnos
-                      .filter((a) => a.grupos?.includes(grupoVisualizado.nombre))
-                      .map((alumno) => {
-                        console.log("Alumno completo:", alumno); // Para debug
-                        return (
-                          <tr key={alumno.id || alumno.matricula} className="hover:bg-gray-50">
-                            <td className="px-4 py-2 border border-gray-200">
-                              {alumno.nombre}
-                            </td>
-                          <td className="px-4 py-2 border border-gray-200 text-center">
-                            {alumno.matricula}
-                          </td>
-                          <td className="px-4 py-2 border border-gray-200 text-center">
-                            <button
-                              className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
-                              onClick={() => {
-                                // Verificar que el alumno tenga un ID válido
-                                if (!alumno.id && !alumno.matricula) {
-                                  console.error("El alumno no tiene identificador válido", alumno);
-                                  alert("Error: No se puede identificar al alumno");
-                                  return;
-                                }
 
-                                // Usar el ID o la matrícula como identificador
-                                const alumnoId = alumno.id || alumno.matricula;
-                                
-                                console.log("Grupo a quitar:", grupoVisualizado.nombre);
-                                console.log("Grupos actuales del alumno:", alumno.grupos);
-                                console.log("ID del alumno:", alumnoId);
+                    {alumnos.filter(
+                      (a) => a.grupos?.includes(grupoVisualizado.nombre)
+                    ).length === 0 ? (
 
-                                // Crear una copia del estado actual
-                                const alumnosActualizados = alumnos.map(a => {
-                                  // Comparar usando el campo disponible (id o matricula)
-                                  const aId = a.id || a.matricula;
-                                  
-                                  if (aId === alumnoId) {
-                                    // Filtrar SOLO el grupo actual
-                                    const gruposActualizados = (a.grupos || []).filter(
-                                      g => g !== grupoVisualizado.nombre
-                                    );
-                                    
-                                    console.log("Grupos después de quitar:", gruposActualizados);
-                                    
-                                    return {
-                                      ...a,
-                                      grupos: gruposActualizados
-                                    };
-                                  }
-                                  return a;
-                                });
-                                
-                                // Actualizar el estado
-                                setAlumnos(alumnosActualizados);
-                                
-                                // Mostrar mensaje de confirmación
-                                console.log(`Alumno ${alumno.nombre} removido del grupo ${grupoVisualizado.nombre}`);
-                                
-                                // Opcional: Mostrar un pequeño mensaje al usuario
-                                alert(`Alumno ${alumno.nombre} removido del grupo`);
-                              }}
+                      <tr>
+                        <td
+                          colSpan="3"
+                          className="text-center py-4 text-red-500 font-semibold"
+                        >
+                          Grupo vacío
+                        </td>
+                      </tr>
+
+                    ) : (
+
+                      alumnos
+                        .filter((a) => a.grupos?.includes(grupoVisualizado.nombre))
+                        .map((alumno) => {
+                          console.log("Alumno completo:", alumno);
+
+                          return (
+                            <tr
+                              key={alumno.id || alumno.matricula}
+                              className="hover:bg-gray-50"
                             >
-                              Quitar
-                            </button>
-                          </td>
-                        </tr>
-                        );
-                })}  
+
+                              <td className="px-4 py-2 border border-gray-200">
+                                {alumno.nombre}
+                              </td>
+
+                              <td className="px-4 py-2 border border-gray-200 text-center">
+                                {alumno.matricula}
+                              </td>
+
+                              <td className="px-4 py-2 border border-gray-200 text-center">
+
+                                <button
+                                  className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
+
+                                  onClick={() => {
+
+                                    const confirmar = window.confirm(
+                                      `¿Estás seguro de quitar a ${alumno.nombre} del grupo?`
+                                    );
+
+                                    if (!confirmar) return;
+
+                                    // Verificar que el alumno tenga un ID válido
+                                    if (!alumno.id && !alumno.matricula) {
+                                      console.error(
+                                        "El alumno no tiene identificador válido",
+                                        alumno
+                                      );
+
+                                      alert("Error: No se puede identificar al alumno");
+                                      return;
+                                    }
+
+                                    // Usar el ID o la matrícula como identificador
+                                    const alumnoId = alumno.id || alumno.matricula;
+
+                                    console.log(
+                                      "Grupo a quitar:",
+                                      grupoVisualizado.nombre
+                                    );
+
+                                    console.log(
+                                      "Grupos actuales del alumno:",
+                                      alumno.grupos
+                                    );
+
+                                    console.log("ID del alumno:", alumnoId);
+
+                                    // Crear una copia del estado actual
+                                    const alumnosActualizados = alumnos.map(a => {
+
+                                      const aId = a.id || a.matricula;
+
+                                      if (aId === alumnoId) {
+
+                                        const gruposActualizados = (
+                                          a.grupos || []
+                                        ).filter(
+                                          g => g !== grupoVisualizado.nombre
+                                        );
+
+                                        console.log(
+                                          "Grupos después de quitar:",
+                                          gruposActualizados
+                                        );
+
+                                        return {
+                                          ...a,
+                                          grupos: gruposActualizados
+                                        };
+                                      }
+
+                                      return a;
+                                    });
+
+                                    // Actualizar el estado
+                                    setAlumnos(alumnosActualizados);
+
+                                    alert(
+                                      `Alumno ${alumno.nombre} removido del grupo`
+                                    );
+                                  }}
+                                >
+                                  Quitar
+                                </button>
+
+                              </td>
+
+                            </tr>
+                          );
+                        })
+
+                    )}
+
                   </tbody>
                 </table>
               </div>
